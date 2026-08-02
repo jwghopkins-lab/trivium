@@ -364,7 +364,7 @@ async function enterPicker() {
   for (const tier of TIERS) {
     const g = document.createElement("div"); g.className = "tiergroup";
     g.innerHTML = `<div class="tierlabel"><span class="dot" style="background:var(--t-${TIER_SLOT[tier]})"></span>
-                   ${tier === "broad" ? "Broad" : tier === "mid" ? "Middle" : "Niche"}</div>`;
+                   ${tier === "broad" ? "Wheelhouse" : tier === "mid" ? "Enthusiast" : "Niche"}</div>`;
     const grid = document.createElement("div"); grid.className = "topicgrid";
     for (const topic of MENU.tiers[tier]) {
       const b = document.createElement("button");
