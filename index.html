@@ -69,10 +69,14 @@
           padding: 3px 10px; border-radius: 999px; color: #fff; }
   #gridwrap { display: flex; justify-content: center; padding: 2px 0 6px; }
   #grid { display: grid; gap: 2px; }
-  .cell { width: var(--cs); height: var(--cs); background: var(--cell);
+  .cell { width: var(--cs); height: var(--cs); background: var(--tint, var(--cell));
           border: 1px solid var(--line); border-radius: 3px; position: relative;
           display: flex; align-items: center; justify-content: center;
-          font-weight: 700; font-size: calc(var(--cs) * .52); cursor: pointer; user-select: none; }
+          font-weight: 700; font-size: calc(var(--cs) * .52); cursor: pointer; user-select: none;
+          /* faint per-topic tints, derived from the tier colors so they track the theme */
+          --tint-a: color-mix(in srgb, var(--t-a) 13%, var(--cell));
+          --tint-b: color-mix(in srgb, var(--t-b) 13%, var(--cell));
+          --tint-c: color-mix(in srgb, var(--t-c) 13%, var(--cell)); }
   .cell.void { background: transparent; border: none; cursor: default; }
   .cell .num { position: absolute; top: 1px; left: 3px; font-size: calc(var(--cs) * .24);
                font-weight: 600; color: var(--ink-soft); }
@@ -242,10 +246,13 @@ async function loadJson(path) {
 
 /* ---------- backend (Supabase PostgREST via fetch) ---------- */
 async function apiSubmit(row) {
-  const res = await fetch(`${CFG.SUPABASE_URL}/rest/v1/results?on_conflict=player_id,day`, {
+  // Plain insert: no on_conflict/ignore-duplicates — that path needs SELECT on
+  // player_id (deliberately revoked). A duplicate day 409s and is treated as
+  // already-posted.
+  const res = await fetch(`${CFG.SUPABASE_URL}/rest/v1/results`, {
     method: "POST",
     headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}`,
-               "Content-Type": "application/json", Prefer: "resolution=ignore-duplicates" },
+               "Content-Type": "application/json" },
     body: JSON.stringify(row),
   });
   if (!res.ok && res.status !== 409) throw new Error(`submit failed: ${res.status}`);
@@ -325,6 +332,7 @@ $("playbtn").onclick = () => loadPuzzle();
 let P = null, PZ = null;
 let badWordKeys = new Set();
 let sel = { e: 0, i: 0 };
+let typedThisWord = new Set();   // cells filled since the current word was selected
 let timerInt = null;
 
 function comboKey() { return [picks.broad, picks.mid, picks.niche].sort().join("|"); }
@@ -423,6 +431,13 @@ function render() {
       l.className = "ltr"; l.textContent = st.fill[key] || "";
       div.appendChild(l);
       div.onclick = () => tapCell(r, c);
+      // faint topic shading: single-word cells get that word's tier tint,
+      // crossing cells a subtle split of both (selection/feedback override)
+      const slots = [...new Set(Object.values(P.cells[key].entries)
+        .map((ei) => TIER_SLOT[(PZ.topics[P.entries[ei].topic] || {}).tier] || "a"))];
+      div.style.setProperty("--tint", slots.length === 1
+        ? `var(--tint-${slots[0]})`
+        : `linear-gradient(135deg, var(--tint-${slots[0]}) 50%, var(--tint-${slots[1]}) 50%)`);
     }
     g.appendChild(div);
   }
@@ -455,6 +470,7 @@ function tapCell(r, c) {
   selectEntry(ei, e.dir === "A" ? c - e.col : r - e.row);
 }
 function selectEntry(ei, off, quiet) {
+  if (ei !== sel.e) typedThisWord.clear();
   sel = { e: ei, i: off ?? 0 };
   const e = P.entries[ei];
   $("cluedot").style.background = `var(${topicVar(e.topic)})`;
@@ -486,6 +502,7 @@ function typeLetter(ch) {
   const cells = entryCells(e);
   const key = cells[sel.i].join(",");
   st.fill[key] = ch;
+  typedThisWord.add(key);
   st.checked = (st.checked || []).filter((k) => k !== key);
   saveState(st);
   let ni = sel.i + 1;
@@ -494,12 +511,42 @@ function typeLetter(ch) {
   else {
     const complete = cells.every(([r, c]) => st.fill[r + "," + c]);
     if (complete && !checkComplete()) {
-      const next = nextEntryWithGap();
+      const next = bestNextEntry(sel.e);
       if (next !== null) { selectEntry(next, firstGap(next)); return; }
     } else if (sel.i < cells.length - 1) sel.i++;
   }
   updateHighlights();
   checkComplete();
+}
+
+// After finishing a word, go where a human would: an unfinished word that
+// CROSSES it, preferring ones that just gained a letter from this word, then
+// fewest missing letters, then most letters present, then lowest number.
+// Falls back to the next numerical word with a gap (no crossers left, or a
+// crosser is full-but-wrong, which counts as "no gap" and is skipped).
+function bestNextEntry(fromEi) {
+  const st = puzzleState();
+  const myCells = new Set(entryCells(P.entries[fromEi]).map((c) => c.join(",")));
+  let best = null;
+  P.entries.forEach((o, oi) => {
+    if (oi === fromEi) return;
+    const oc = entryCells(o).map((c) => c.join(","));
+    const gaps = oc.filter((k) => !st.fill[k]).length;
+    if (!gaps) return;
+    const shared = oc.find((k) => myCells.has(k));
+    if (!shared) return;
+    const cand = { oi, gained: typedThisWord.has(shared) ? 1 : 0,
+                   gaps, filled: oc.length - gaps, num: o.number };
+    if (!best ||
+        cand.gained > best.gained ||
+        (cand.gained === best.gained && cand.gaps < best.gaps) ||
+        (cand.gained === best.gained && cand.gaps === best.gaps && cand.filled > best.filled) ||
+        (cand.gained === best.gained && cand.gaps === best.gaps &&
+         cand.filled === best.filled && cand.num < best.num)) {
+      best = cand;
+    }
+  });
+  return best ? best.oi : nextEntryWithGap();
 }
 function firstGap(ei) {
   const st = puzzleState();
