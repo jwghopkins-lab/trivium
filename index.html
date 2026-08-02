@@ -132,6 +132,10 @@
   .lbrow .combo { font-size: .68rem; color: var(--ink-soft); overflow: hidden;
                   text-overflow: ellipsis; white-space: nowrap; max-width: 9em; }
   .lbrow .t { margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+  .lbsub { font-size: .66rem; color: var(--ink-soft); margin: -1px 0 5px 2.2em;
+           font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis;
+           white-space: nowrap; }
+  .lbsub.me { color: var(--accent); opacity: .85; }
   .btnrow { display: flex; gap: 8px; margin-top: 14px; }
   .btnrow .btn { flex: 1; padding: 11px 0; font-size: .9rem; }
   .note { font-size: .68rem; color: var(--ink-soft); margin-top: 10px; line-height: 1.4; }
@@ -256,6 +260,40 @@ async function apiSubmit(row) {
     body: JSON.stringify(row),
   });
   if (!res.ok && res.status !== 409) throw new Error(`submit failed: ${res.status}`);
+}
+async function apiHistory() {
+  // full results history (small at test scale) for streaks + averages;
+  // identity is display name here, so name-sharers pool their stats
+  const q = `${CFG.SUPABASE_URL}/rest/v1/results` +
+            `?select=player_name,day,seconds,assisted&order=day.desc&limit=2000`;
+  const res = await fetch(q, { headers: { apikey: CFG.SUPABASE_ANON_KEY,
+                                          Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`history failed: ${res.status}`);
+  return res.json();
+}
+function dayShift(dayStr, delta) {
+  const d = new Date(dayStr + "T12:00:00");
+  d.setDate(d.getDate() + delta);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+         "-" + String(d.getDate()).padStart(2, "0");
+}
+// per-player {streak, avg}: streak = consecutive days played ending today
+// (assisted days keep a streak alive); avg = mean of ranked solve times
+function computeStats(hist) {
+  const byName = {};
+  hist.forEach((r) => {
+    const s = byName[r.player_name] || (byName[r.player_name] = { days: new Set(), times: [] });
+    s.days.add(r.day);
+    if (!r.assisted) s.times.push(r.seconds);
+  });
+  const out = {};
+  for (const [name, s] of Object.entries(byName)) {
+    let streak = 0, d = DAY;
+    while (s.days.has(d)) { streak++; d = dayShift(d, -1); }
+    out[name] = { streak,
+      avg: s.times.length ? s.times.reduce((a, b) => a + b, 0) / s.times.length : null };
+  }
+  return out;
 }
 async function apiBoard(day) {
   // player_id is deliberately never selected: it is the write credential and
@@ -442,6 +480,7 @@ function render() {
     g.appendChild(div);
   }
   $("timer").textContent = fmt(st.secs);
+  updateHintBtn(st);
   selectEntry(firstUnsolvedEntry(), 0, true);
   updateHighlights();
   if (st.done) showDone(false);
@@ -632,9 +671,17 @@ document.addEventListener("visibilitychange", () => {
 function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
 
 /* ---- tools ---- */
+const MAX_HINTS = 3;
+function updateHintBtn(st) {
+  const left = MAX_HINTS - (st.hints || 0);
+  $("hintbtn").textContent = left > 0
+    ? `Hint +0:20${(st.hints || 0) ? ` (${left} left)` : ""}`
+    : "No hints left";
+}
 $("hintbtn").onclick = () => {
   const st = puzzleState();
   if (st.done) return;
+  if ((st.hints || 0) >= MAX_HINTS) { toast(`No hints left (max ${MAX_HINTS})`); return; }
   badWordKeys.clear();
   const cells = entryCells(P.entries[sel.e]);
   let target = null, ti = sel.i;
@@ -654,9 +701,10 @@ $("hintbtn").onclick = () => {
   st.hints = (st.hints || 0) + 1;
   saveState(st);
   startTimer();
+  updateHintBtn(st);
   $("timer").textContent = fmt(st.secs);
   sel.i = ti;
-  toast(`Hint used: +0:20 (${st.hints} total)`);
+  toast(`Hint used: +0:20 (${MAX_HINTS - st.hints} left)`);
   updateHighlights();
   checkComplete();
 };
@@ -680,33 +728,64 @@ async function submitResult(st) {
   }
 }
 
+// local streak for offline mode: consecutive days with a finished LS state
+function localStreak() {
+  let streak = 0, d = DAY;
+  while ((LS.get("state." + d, {}) || {}).done) { streak++; d = dayShift(d, -1); }
+  return Math.max(1, streak);
+}
 async function showDone(justFinished, lbOnly) {
   const st = puzzleState();
   if (st.done && !st.submitted) await submitResult(st);
   const ranked = st.done && !st.assisted;
-  let rows = [], boardNote = "";
+  let rows = [], stats = {}, boardNote = "";
   if (ONLINE) {
-    try { rows = await apiBoard(DAY); }
-    catch (e) { boardNote = "Leaderboard unavailable right now."; }
+    try {
+      const [b, hist] = await Promise.all([apiBoard(DAY), apiHistory()]);
+      rows = b; stats = computeStats(hist);
+    } catch (e) { boardNote = "Leaderboard unavailable right now."; }
   } else {
     boardNote = "Offline demo: no shared leaderboard configured.";
-    if (st.done) rows = [{ player_name: player().name,
-                           combo_key: PZ ? PZ.combo_key : "", seconds: st.secs,
-                           hints: st.hints || 0, assisted: !!st.assisted }];
+    if (st.done) {
+      rows = [{ player_name: player().name, combo_key: PZ ? PZ.combo_key : "",
+                seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }];
+      stats[player().name] = { streak: localStreak(), avg: st.secs };
+    }
   }
   // "me" is matched on submitted fields (player_id is never sent back to clients)
   const isMe = (r) => st.done && r.player_name === player().name &&
     r.seconds === st.secs && !!r.assisted === !!st.assisted;
-  const rankedRows = rows.filter((r) => !r.assisted).sort((a, b) => a.seconds - b.seconds);
+
+  // TRIV score: streak, today's time and long-run average, each normalised
+  // within today's ranked cohort, combined into one 0-100 number
+  const rankedRows = rows.filter((r) => !r.assisted);
   const assistedRows = rows.filter((r) => r.assisted).sort((a, b) => a.seconds - b.seconds);
+  rows.forEach((r) => {
+    const s = stats[r.player_name] || {};
+    r._streak = Math.max(1, s.streak || 1);
+    r._avg = s.avg != null ? s.avg : r.seconds;
+  });
+  if (rankedRows.length) {
+    const bestT = Math.min(...rankedRows.map((r) => Number(r.seconds) || 1));
+    const bestA = Math.min(...rankedRows.map((r) => r._avg || 1));
+    const maxS = Math.max(...rankedRows.map((r) => r._streak));
+    rankedRows.forEach((r) => {
+      r._score = Math.round(50 * (r._streak / maxS) +
+                            30 * (bestT / (Number(r.seconds) || 1)) +
+                            20 * (bestA / (r._avg || 1)));
+    });
+    rankedRows.sort((a, b) => (b._score - a._score) || (a.seconds - b.seconds));
+  }
   const myRank = ranked ? rankedRows.findIndex(isMe) + 1 : 0;
   const total = rankedRows.length;
   const pct = myRank ? Math.max(1, Math.round((myRank / total) * 100)) : 0;
+  const myStreak = (stats[player().name] || {}).streak || (st.done ? 1 : 0);
 
   const lbHtml = rankedRows.map((r, i) => rowHtml(r, i + 1, isMe(r)))
     .concat(assistedRows.map((r) => rowHtml(r, "–", isMe(r)))).join("");
   const share = `TRIVIUM 🧩 ${DAY.slice(5)} · ${fmt(st.secs)}` +
     (st.hints ? ` · ${st.hints}💡` : "") +
+    (myStreak > 1 ? ` · 🔥${myStreak}` : "") +
     (ranked && myRank ? ` · ${ord(myRank)} of ${total}` : (st.assisted ? " · assisted" : ""));
   const head = lbOnly && !st.done
     ? `<h2>Today's board</h2><div class="sub">Everyone playing ${DAY}, all topic combos</div>`
@@ -715,6 +794,7 @@ async function showDone(justFinished, lbOnly) {
        ${ranked && myRank ? `<div class="rank"><b>${ord(myRank)}</b> of ${total} playing today${total > 1 ? ` — top ${pct}%` : ""}</div>`
          : ranked ? `<div class="rank">You're on the board.</div>`
          : `<div class="rank">Assisted solves appear on the board but aren't ranked.</div>`}
+       ${myStreak > 1 ? `<div class="sub">🔥 ${myStreak}-day streak</div>` : ""}
        ${st.hints ? `<div class="sub">Time includes ${st.hints} hint${st.hints === 1 ? "" : "s"} (+${fmt(st.hints * 20)} penalty)</div>` : ""}`;
   $("modalcard").innerHTML = head +
     `<div class="lb"><h3>Today — all players, all combos</h3>
@@ -724,8 +804,9 @@ async function showDone(justFinished, lbOnly) {
        ${st.done ? `<button class="btn primary" id="sharebtn">Copy result</button>` : ""}
        <button class="btn ghost" id="closebtn">Close</button>
      </div>
-     <div class="note">Different combos differ in difficulty; the board shows each player's
-     topics for context. Times are self-reported by the app (test build).</div>`;
+     <div class="note">Ranked by TRIV score — your streak, today's time and your long-run
+     average all count. Combos differ in difficulty; each row shows the player's topics.
+     Times are self-reported by the app (test build).</div>`;
   $("modal").classList.add("show");
   $("closebtn").onclick = () => $("modal").classList.remove("show");
   const sb = $("sharebtn");
@@ -738,10 +819,15 @@ async function showDone(justFinished, lbOnly) {
 function rowHtml(r, rank, me) {
   // every server-derived string is escaped: any anon-key holder can insert rows
   const combo = (r.combo_key || "").split("|").map(comboShort).join("·");
+  const streak = r._streak > 1 ? ` 🔥${escapeHtml(String(r._streak))}` : "";
+  const right = r._score != null ? String(r._score) : fmt(Number(r.seconds) || 0);
+  const sub = `today ${fmt(Number(r.seconds) || 0)}${r.hints ? "💡" : ""}` +
+    ` · avg ${fmt(Math.round(r._avg || r.seconds || 0))} · ${combo}`;
   return `<div class="lbrow${me ? " me" : ""}"><span class="n">${escapeHtml(String(rank))}.</span>` +
-    `<span>${escapeHtml(String(r.player_name))}${r.assisted ? " <i style='font-size:.68rem'>(assisted)</i>" : ""}</span>` +
-    `<span class="combo">${escapeHtml(combo)}</span>` +
-    `<span class="t">${fmt(Number(r.seconds) || 0)}${r.hints ? "💡" : ""}</span></div>`;
+    `<span>${escapeHtml(String(r.player_name))}${streak}` +
+    `${r.assisted ? " <i style='font-size:.68rem'>(assisted)</i>" : ""}</span>` +
+    `<span class="t">${escapeHtml(right)}</span></div>` +
+    `<div class="lbsub${me ? " me" : ""}">${escapeHtml(sub)}</div>`;
 }
 function comboShort(tid) {
   return (tid || "").split("-").map((w) => w[0] ? w[0].toUpperCase() : "").join("");
