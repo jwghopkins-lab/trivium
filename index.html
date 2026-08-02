@@ -136,6 +136,10 @@
            font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis;
            white-space: nowrap; }
   .lbsub.me { color: var(--accent); opacity: .85; }
+  .mv { font-size: .64rem; margin-left: auto; padding-right: 6px; }
+  .mv.up { color: var(--good); }
+  .mv.dn { color: var(--wrong); }
+  .lbrow:has(.mv) .t { margin-left: 0; }
   .btnrow { display: flex; gap: 8px; margin-top: 14px; }
   .btnrow .btn { flex: 1; padding: 11px 0; font-size: .9rem; }
   .note { font-size: .68rem; color: var(--ink-soft); margin-top: 10px; line-height: 1.4; }
@@ -277,22 +281,37 @@ function dayShift(dayStr, delta) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
          "-" + String(d.getDate()).padStart(2, "0");
 }
-// per-player {streak, avg}: streak = consecutive days played ending today
-// (assisted days keep a streak alive); avg = mean of ranked solve times
+// per-player stats: streak = consecutive days played ending today (assisted
+// days keep a streak alive); avg7 = mean ranked time over the last 7 days
+// incl. today; priorAvg = same but excluding today (for "beat your average")
 function computeStats(hist) {
+  const weekAgo = dayShift(DAY, -6);
   const byName = {};
   hist.forEach((r) => {
-    const s = byName[r.player_name] || (byName[r.player_name] = { days: new Set(), times: [] });
+    const s = byName[r.player_name] ||
+      (byName[r.player_name] = { days: new Set(), week: [], prior: [] });
     s.days.add(r.day);
-    if (!r.assisted) s.times.push(r.seconds);
+    if (!r.assisted && r.day >= weekAgo && r.day <= DAY) {
+      s.week.push(r.seconds);
+      if (r.day !== DAY) s.prior.push(r.seconds);
+    }
   });
+  const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
   const out = {};
   for (const [name, s] of Object.entries(byName)) {
     let streak = 0, d = DAY;
     while (s.days.has(d)) { streak++; d = dayShift(d, -1); }
-    out[name] = { streak,
-      avg: s.times.length ? s.times.reduce((a, b) => a + b, 0) / s.times.length : null };
+    out[name] = { streak, avg7: mean(s.week), priorAvg: mean(s.prior) };
   }
+  return out;
+}
+// yesterday's ranked finishing order (by time) for movement arrows
+function ydayRanks(hist) {
+  const y = dayShift(DAY, -1);
+  const rows = hist.filter((r) => r.day === y && !r.assisted)
+    .sort((a, b) => a.seconds - b.seconds);
+  const out = {};
+  rows.forEach((r, i) => { if (!(r.player_name in out)) out[r.player_name] = i + 1; });
   return out;
 }
 async function apiBoard(day) {
@@ -738,43 +757,57 @@ async function showDone(justFinished, lbOnly) {
   const st = puzzleState();
   if (st.done && !st.submitted) await submitResult(st);
   const ranked = st.done && !st.assisted;
-  let rows = [], stats = {}, boardNote = "";
+  let rows = [], stats = {}, yday = {}, pars = {}, boardNote = "";
   if (ONLINE) {
     try {
-      const [b, hist] = await Promise.all([apiBoard(DAY), apiHistory()]);
-      rows = b; stats = computeStats(hist);
+      const [b, hist, p] = await Promise.all([apiBoard(DAY), apiHistory(),
+        loadJson(`pars/${DAY}.json`).catch(() => ({}))]);
+      rows = b; stats = computeStats(hist); yday = ydayRanks(hist); pars = p;
     } catch (e) { boardNote = "Leaderboard unavailable right now."; }
   } else {
     boardNote = "Offline demo: no shared leaderboard configured.";
+    try { pars = await loadJson(`pars/${DAY}.json`); } catch (e) {}
     if (st.done) {
       rows = [{ player_name: player().name, combo_key: PZ ? PZ.combo_key : "",
                 seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }];
-      stats[player().name] = { streak: localStreak(), avg: st.secs };
+      stats[player().name] = { streak: localStreak(), avg7: st.secs, priorAvg: null };
     }
   }
   // "me" is matched on submitted fields (player_id is never sent back to clients)
   const isMe = (r) => st.done && r.player_name === player().name &&
     r.seconds === st.secs && !!r.assisted === !!st.assisted;
 
-  // TRIV score: streak, today's time and long-run average, each normalised
-  // within today's ranked cohort, combined into one 0-100 number
+  // TRIV score v2 (weights hidden from UI):
+  //   40% today's time vs the puzzle's par (fair across combos)
+  //   25% streak, square-rooted and capped at 7 (newcomers stay in reach)
+  //   20% 7-day rolling average (improvement shows quickly)
+  //   15% clean-solve bonus (fewer hints, higher marks)
+  const parVals = Object.values(pars).sort((a, b) => a - b);
+  const parDefault = parVals.length ? parVals[Math.floor(parVals.length / 2)] : 300;
+  const parOf = (ck) => Number(pars[ck]) || parDefault;
   const rankedRows = rows.filter((r) => !r.assisted);
   const assistedRows = rows.filter((r) => r.assisted).sort((a, b) => a.seconds - b.seconds);
   rows.forEach((r) => {
     const s = stats[r.player_name] || {};
     r._streak = Math.max(1, s.streak || 1);
-    r._avg = s.avg != null ? s.avg : r.seconds;
+    r._avg = s.avg7 != null ? s.avg7 : Number(r.seconds) || 0;
+    r._ratio = (Number(r.seconds) || 1) / parOf(r.combo_key);
   });
   if (rankedRows.length) {
-    const bestT = Math.min(...rankedRows.map((r) => Number(r.seconds) || 1));
+    const bestRatio = Math.min(...rankedRows.map((r) => r._ratio));
     const bestA = Math.min(...rankedRows.map((r) => r._avg || 1));
-    const maxS = Math.max(...rankedRows.map((r) => r._streak));
     rankedRows.forEach((r) => {
-      r._score = Math.round(50 * (r._streak / maxS) +
-                            30 * (bestT / (Number(r.seconds) || 1)) +
-                            20 * (bestA / (r._avg || 1)));
+      r._score = Math.round(
+        40 * (bestRatio / r._ratio) +
+        25 * (Math.sqrt(Math.min(r._streak, 7)) / Math.sqrt(7)) +
+        20 * (bestA / (r._avg || 1)) +
+        15 * ((MAX_HINTS - Math.min(Number(r.hints) || 0, MAX_HINTS)) / MAX_HINTS));
     });
     rankedRows.sort((a, b) => (b._score - a._score) || (a.seconds - b.seconds));
+    rankedRows.forEach((r, i) => {
+      const prev = yday[r.player_name];
+      r._move = prev ? prev - (i + 1) : null;   // + = climbed since yesterday
+    });
   }
   const myRank = ranked ? rankedRows.findIndex(isMe) + 1 : 0;
   const total = rankedRows.length;
@@ -795,6 +828,9 @@ async function showDone(justFinished, lbOnly) {
          : ranked ? `<div class="rank">You're on the board.</div>`
          : `<div class="rank">Assisted solves appear on the board but aren't ranked.</div>`}
        ${myStreak > 1 ? `<div class="sub">🔥 ${myStreak}-day streak</div>` : ""}
+       ${(() => { const pa = (stats[player().name] || {}).priorAvg;
+           return ranked && pa && st.secs < pa
+             ? `<div class="sub" style="color:var(--good)">⚡ Faster than your 7-day average (${fmt(Math.round(pa))})</div>` : ""; })()}
        ${st.hints ? `<div class="sub">Time includes ${st.hints} hint${st.hints === 1 ? "" : "s"} (+${fmt(st.hints * 20)} penalty)</div>` : ""}`;
   $("modalcard").innerHTML = head +
     `<div class="lb"><h3>Today — all players, all combos</h3>
@@ -821,12 +857,15 @@ function rowHtml(r, rank, me) {
   const combo = (r.combo_key || "").split("|").map(comboShort).join("·");
   const streak = r._streak > 1 ? ` 🔥${escapeHtml(String(r._streak))}` : "";
   const right = r._score != null ? String(r._score) : fmt(Number(r.seconds) || 0);
+  const mv = r._move == null || r._move === 0 ? "" :
+    r._move > 0 ? `<span class="mv up">▲${escapeHtml(String(r._move))}</span>`
+                : `<span class="mv dn">▼${escapeHtml(String(-r._move))}</span>`;
   const sub = `today ${fmt(Number(r.seconds) || 0)}${r.hints ? "💡" : ""}` +
     ` · avg ${fmt(Math.round(r._avg || r.seconds || 0))} · ${combo}`;
   return `<div class="lbrow${me ? " me" : ""}"><span class="n">${escapeHtml(String(rank))}.</span>` +
     `<span>${escapeHtml(String(r.player_name))}${streak}` +
     `${r.assisted ? " <i style='font-size:.68rem'>(assisted)</i>" : ""}</span>` +
-    `<span class="t">${escapeHtml(right)}</span></div>` +
+    `${mv}<span class="t">${escapeHtml(right)}</span></div>` +
     `<div class="lbsub${me ? " me" : ""}">${escapeHtml(sub)}</div>`;
 }
 function comboShort(tid) {
