@@ -519,24 +519,34 @@ function typeLetter(ch) {
   checkComplete();
 }
 
-// After finishing a word, go where a human would: an unfinished word that
-// CROSSES it, preferring ones that just gained a letter from this word, then
-// fewest missing letters, then most letters present, then lowest number.
-// Falls back to the next numerical word with a gap (no crossers left, or a
-// crosser is full-but-wrong, which counts as "no gap" and is skipped).
+// After finishing a word, go where a human would:
+// 1. an unfinished word that CROSSES it — preferring one that just gained a
+//    letter from this word, then fewest missing letters, then most letters
+//    present, then lowest number;
+// 2. else the most-filled unfinished word anywhere in the grid (most letters
+//    present, then fewest missing, then lowest number);
+// 3. else (no unfinished word has any letters) the next numerical word with
+//    a gap. Full-but-wrong words count as "no gap" and are skipped throughout.
 function bestNextEntry(fromEi) {
   const st = puzzleState();
   const myCells = new Set(entryCells(P.entries[fromEi]).map((c) => c.join(",")));
-  let best = null;
+  let best = null, bestAny = null;
   P.entries.forEach((o, oi) => {
     if (oi === fromEi) return;
     const oc = entryCells(o).map((c) => c.join(","));
     const gaps = oc.filter((k) => !st.fill[k]).length;
     if (!gaps) return;
+    const filled = oc.length - gaps;
+    if (filled > 0 && (!bestAny ||
+        filled > bestAny.filled ||
+        (filled === bestAny.filled && gaps < bestAny.gaps) ||
+        (filled === bestAny.filled && gaps === bestAny.gaps && o.number < bestAny.num))) {
+      bestAny = { oi, filled, gaps, num: o.number };
+    }
     const shared = oc.find((k) => myCells.has(k));
     if (!shared) return;
     const cand = { oi, gained: typedThisWord.has(shared) ? 1 : 0,
-                   gaps, filled: oc.length - gaps, num: o.number };
+                   gaps, filled, num: o.number };
     if (!best ||
         cand.gained > best.gained ||
         (cand.gained === best.gained && cand.gaps < best.gaps) ||
@@ -546,7 +556,9 @@ function bestNextEntry(fromEi) {
       best = cand;
     }
   });
-  return best ? best.oi : nextEntryWithGap();
+  if (best) return best.oi;
+  if (bestAny) return bestAny.oi;
+  return nextEntryWithGap();
 }
 function firstGap(ei) {
   const st = puzzleState();
