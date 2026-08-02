@@ -1,0 +1,59 @@
+{
+ "date": "2026-08-01",
+ "tiers": {
+  "broad": [
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "movies-tv",
+    "label": "Movies & TV"
+   },
+   {
+    "id": "music",
+    "label": "Music"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   }
+  ],
+  "mid": [
+   {
+    "id": "1980s-pop-culture",
+    "label": "1980s Pop Culture"
+   },
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   },
+   {
+    "id": "world-landmarks",
+    "label": "World Landmarks & Travel"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-rome",
+    "label": "Ancient Rome"
+   },
+   {
+    "id": "dinosaurs",
+    "label": "Dinosaurs"
+   },
+   {
+    "id": "formula-1",
+    "label": "Formula 1"
+   },
+   {
+    "id": "greek-mythology",
+    "label": "Greek Mythology"
+   }
+  ]
+ }
+}

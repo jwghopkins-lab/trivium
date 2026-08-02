@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TRIVIUM — daily three-topic crossword</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  :root {
+    --paper: #F3F5F1; --panel: #FFFFFF; --ink: #1C2227; --ink-soft: #5A6570;
+    --line: #C9CFC9; --accent: #2B52D8; --accent-soft: #DDE4FB;
+    --cell: #FFFFFF; --cell-active: #2B52D8; --cell-word: #DDE4FB;
+    --wrong: #C0392B; --wrong-soft: #F7DAD5; --good: #1E7B4F;
+    --t-a: #C64B33; --t-b: #B3268C; --t-c: #8A7B2B;
+    --key: #E4E8E2; --key-ink: #1C2227;
+    --shadow: 0 1px 3px rgba(20,25,30,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14181C; --panel: #1D2329; --ink: #E7EBEE; --ink-soft: #93A0AB;
+      --line: #39424A; --accent: #6E8EF5; --accent-soft: #27335C;
+      --cell: #232A31; --cell-active: #4E6FE3; --cell-word: #2B3860;
+      --wrong: #E06A5B; --wrong-soft: #4A2622; --good: #4BBF87;
+      --t-a: #E07A5F; --t-b: #DD62BC; --t-c: #C4B454;
+      --key: #2A323A; --key-ink: #E7EBEE;
+      --shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { background: var(--paper); color: var(--ink);
+         font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+         display: flex; flex-direction: column; align-items: center;
+         overscroll-behavior: none; touch-action: manipulation; }
+  .screen { width: 100%; max-width: 520px; display: none; flex-direction: column;
+            min-height: 100dvh; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); }
+  .screen.on { display: flex; }
+  header { display: flex; align-items: baseline; gap: 10px; padding: 4px 2px 2px; }
+  .wordmark { font-family: Georgia, "Times New Roman", serif; font-weight: 700;
+              font-size: 1.45rem; letter-spacing: .04em; }
+  .wordmark span { color: var(--accent); }
+  .tagline { font-size: .68rem; color: var(--ink-soft); letter-spacing: .08em; text-transform: uppercase; }
+  .spacer { flex: 1; }
+  #timer { font-family: ui-monospace, "SF Mono", Menlo, monospace;
+           font-variant-numeric: tabular-nums; font-size: 1.05rem; font-weight: 600; }
+  .banner { background: var(--wrong-soft); color: var(--wrong); border-radius: 8px;
+            font-size: .74rem; padding: 7px 10px; margin: 6px 0; }
+  .card2 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+           padding: 16px 14px; margin: 10px 0; box-shadow: var(--shadow); }
+  .card2 h2 { font-family: Georgia, serif; font-size: 1.15rem; margin-bottom: 8px; }
+  .card2 p { font-size: .84rem; color: var(--ink-soft); line-height: 1.45; margin-bottom: 8px; }
+  input[type=text] { width: 100%; padding: 11px 12px; font-size: 1rem; border-radius: 9px;
+                     border: 1px solid var(--line); background: var(--cell); color: var(--ink); }
+  .tiergroup { margin: 12px 0 4px; }
+  .tierlabel { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+               color: var(--ink-soft); margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+  .tierlabel .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .topicgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .topicbtn { border: 1.5px solid var(--line); background: var(--panel); color: var(--ink);
+              border-radius: 10px; padding: 12px 8px; font-size: .84rem; font-weight: 600;
+              cursor: pointer; text-align: center; }
+  .topicbtn.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .btn { border: none; border-radius: 10px; padding: 12px 0; font-size: .95rem;
+         font-weight: 600; cursor: pointer; width: 100%; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:disabled { opacity: .45; cursor: default; }
+  .btn.ghost { background: var(--key); color: var(--key-ink); }
+  .chips { display: flex; gap: 6px; padding: 6px 0 8px; flex-wrap: wrap; align-items: center; }
+  .chip { font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+          padding: 3px 10px; border-radius: 999px; color: #fff; }
+  #gridwrap { display: flex; justify-content: center; padding: 2px 0 6px; }
+  #grid { display: grid; gap: 2px; }
+  .cell { width: var(--cs); height: var(--cs); background: var(--cell);
+          border: 1px solid var(--line); border-radius: 3px; position: relative;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700; font-size: calc(var(--cs) * .52); cursor: pointer; user-select: none; }
+  .cell.void { background: transparent; border: none; cursor: default; }
+  .cell .num { position: absolute; top: 1px; left: 3px; font-size: calc(var(--cs) * .24);
+               font-weight: 600; color: var(--ink-soft); }
+  .cell.word { background: var(--cell-word); }
+  .cell.active { background: var(--cell-active); color: #fff; }
+  .cell.active .num { color: rgba(255,255,255,.8); }
+  .cell.badword { color: var(--wrong); background: var(--wrong-soft); }
+  .cell.badword.active { color: #fff; background: var(--cell-active); }
+  .cell.bad { color: var(--wrong); }
+  .cell.bad::after { content: ""; position: absolute; inset: 0;
+                     border-bottom: 3px solid var(--wrong); border-radius: 3px; }
+  #cluebar { display: flex; align-items: center; gap: 8px; background: var(--panel);
+             border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+             margin: 2px 0 8px; box-shadow: var(--shadow); min-height: 54px; }
+  #cluebar .dot, .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  #cluetext { font-family: Georgia, serif; font-size: .95rem; line-height: 1.25; flex: 1; }
+  #cluetext b { font-family: system-ui, sans-serif; font-size: .78rem; color: var(--ink-soft);
+                font-weight: 600; margin-right: 6px; }
+  .nav { border: none; background: var(--key); color: var(--key-ink); border-radius: 8px;
+         width: 34px; height: 38px; font-size: 1rem; cursor: pointer; flex: none; }
+  #kb { display: flex; flex-direction: column; gap: 5px; margin-top: auto; }
+  .krow { display: flex; gap: 4px; justify-content: center; }
+  .key { flex: 1; max-width: 42px; height: 46px; border: none; border-radius: 6px;
+         background: var(--key); color: var(--key-ink); font-size: 1.02rem; font-weight: 600;
+         cursor: pointer; box-shadow: var(--shadow); }
+  .key:active { background: var(--accent); color: #fff; }
+  .key.wide { max-width: 64px; font-size: .8rem; }
+  .toolrow { display: flex; gap: 6px; justify-content: center; padding: 6px 0 2px; flex-wrap: wrap; }
+  .tool { border: 1px solid var(--line); background: var(--panel); color: var(--ink-soft);
+          font-size: .74rem; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+  .tool:focus-visible, .key:focus-visible, .nav:focus-visible, .topicbtn:focus-visible, .btn:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px; }
+  #modal { position: fixed; inset: 0; background: rgba(10,14,18,.55); display: none;
+           align-items: center; justify-content: center; padding: 18px; z-index: 20; }
+  #modal.show { display: flex; }
+  .card { background: var(--panel); color: var(--ink); border-radius: 16px; padding: 22px 20px;
+          max-width: 380px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+          max-height: 86dvh; overflow-y: auto; }
+  .card h2 { font-family: Georgia, serif; font-size: 1.35rem; margin-bottom: 4px; }
+  .card .big { font-family: ui-monospace, Menlo, monospace; font-size: 2rem; font-weight: 700;
+               font-variant-numeric: tabular-nums; margin: 8px 0 2px; }
+  .card .rank { font-size: 1.02rem; margin: 6px 0 2px; }
+  .card .rank b { color: var(--accent); }
+  .card .sub { color: var(--ink-soft); font-size: .8rem; margin-bottom: 10px; }
+  .lb { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 8px; font-size: .82rem; }
+  .lb h3 { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+           color: var(--ink-soft); margin-bottom: 6px; }
+  .lbrow { display: flex; gap: 8px; padding: 2.5px 0; font-variant-numeric: tabular-nums;
+           align-items: baseline; }
+  .lbrow.me { color: var(--accent); font-weight: 700; }
+  .lbrow .n { width: 2.2em; color: var(--ink-soft); }
+  .lbrow.me .n { color: var(--accent); }
+  .lbrow .combo { font-size: .68rem; color: var(--ink-soft); overflow: hidden;
+                  text-overflow: ellipsis; white-space: nowrap; max-width: 9em; }
+  .lbrow .t { margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+  .btnrow { display: flex; gap: 8px; margin-top: 14px; }
+  .btnrow .btn { flex: 1; padding: 11px 0; font-size: .9rem; }
+  .note { font-size: .68rem; color: var(--ink-soft); margin-top: 10px; line-height: 1.4; }
+  #kbhint { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); left: 50%;
+            transform: translateX(-50%); background: var(--accent); color: #fff;
+            font-size: .8rem; font-weight: 600; padding: 9px 18px; border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.3); z-index: 25; display: none;
+            animation: hintpulse 1.6s ease-in-out infinite; cursor: pointer; border: none; }
+  #kbhint.show { display: block; }
+  @keyframes hintpulse { 0%,100% { transform: translateX(-50%) translateY(0); }
+                         50% { transform: translateX(-50%) translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { #kbhint { animation: none; } * { transition: none !important; } }
+  #toast { position: fixed; bottom: 190px; left: 50%; transform: translateX(-50%);
+           background: var(--ink); color: var(--paper); font-size: .8rem; padding: 8px 16px;
+           border-radius: 999px; opacity: 0; transition: opacity .25s; pointer-events: none;
+           z-index: 30; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Screen 1: name setup -->
+<div class="screen" id="s-setup">
+  <header><div><div class="wordmark">TRIVI<span>UM</span></div>
+    <div class="tagline">where three topics cross</div></div></header>
+  <div class="card2">
+    <h2>Pick a display name</h2>
+    <p>You'll appear on the daily leaderboard under this name. This device remembers you —
+       no account, no password (test build, honour system).</p>
+    <input type="text" id="namein" maxlength="20" placeholder="e.g. PuzzleFox" autocomplete="off">
+    <div style="height:10px"></div>
+    <button class="btn primary" id="namebtn" disabled>Let's play</button>
+  </div>
+</div>
+
+<!-- Screen 2: daily topic picker -->
+<div class="screen" id="s-pick">
+  <header><div><div class="wordmark">TRIVI<span>UM</span></div>
+    <div class="tagline" id="pickdate"></div></div>
+    <div class="spacer"></div><div style="font-size:.8rem;color:var(--ink-soft)" id="hello"></div></header>
+  <div id="offline-banner" class="banner" style="display:none">
+    Leaderboard offline — no backend configured. You can still play; see SETUP.md.</div>
+  <div class="card2">
+    <h2>Today's topics</h2>
+    <p>Pick one from each shelf. Your three topics make today's puzzle — and you're ranked
+       against <b>everyone playing today</b>, whatever they picked. Choice locks when you
+       start solving.</p>
+    <div id="tiers"></div>
+    <div style="height:12px"></div>
+    <button class="btn primary" id="playbtn" disabled>Make my puzzle</button>
+  </div>
+</div>
+
+<!-- Screen 3: the game -->
+<div class="screen" id="s-game">
+  <header>
+    <div><div class="wordmark">TRIVI<span>UM</span></div>
+      <div class="tagline" id="gamedate"></div></div>
+    <div class="spacer"></div>
+    <div style="text-align:right"><div id="timer">0:00</div></div>
+  </header>
+  <div class="chips" id="chips"></div>
+  <div id="gridwrap"><div id="grid"></div></div>
+  <div id="cluebar">
+    <button class="nav" id="prevclue" aria-label="Previous clue">‹</button>
+    <span class="dot" id="cluedot"></span>
+    <div id="cluetext"></div>
+    <button class="nav" id="nextclue" aria-label="Next clue">›</button>
+  </div>
+  <div id="kb">
+    <div class="toolrow">
+      <button class="tool" id="hintbtn">Hint +0:20</button>
+      <button class="tool" id="lbbtn">Leaderboard</button>
+    </div>
+    <div class="krow" data-keys="QWERTYUIOP"></div>
+    <div class="krow" data-keys="ASDFGHJKL"></div>
+    <div class="krow" data-keys="ZXCVBNM" data-extra="1"></div>
+  </div>
+</div>
+
+<button id="kbhint">⌨ Keys below — scroll ↓</button>
+<div id="modal"><div class="card" id="modalcard"></div></div>
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+"use strict";
+const CFG = window.TRIVIUM_CONFIG || {};
+const ONLINE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+const TIER_SLOT = { broad: "a", mid: "b", niche: "c" };
+const TIERS = ["broad", "mid", "niche"];
+const $ = (id) => document.getElementById(id);
+const LS = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem("trivium2." + k)) ?? d; } catch { return d; } },
+  set(k, v) { localStorage.setItem("trivium2." + k, JSON.stringify(v)); },
+};
+const DAY = (() => {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+         "-" + String(d.getDate()).padStart(2, "0");
+})();
+
+// Data loader: the artifact edition inlines menus/puzzles into
+// window.TRIVIUM_STATIC (keyed by relative path); the hosted edition fetches.
+async function loadJson(path) {
+  const inline = (window.TRIVIUM_STATIC || {})[path];
+  if (inline) return inline;
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(String(res.status));
+  return res.json();
+}
+
+/* ---------- backend (Supabase PostgREST via fetch) ---------- */
+async function apiSubmit(row) {
+  const res = await fetch(`${CFG.SUPABASE_URL}/rest/v1/results?on_conflict=player_id,day`, {
+    method: "POST",
+    headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}`,
+               "Content-Type": "application/json", Prefer: "resolution=ignore-duplicates" },
+    body: JSON.stringify(row),
+  });
+  if (!res.ok && res.status !== 409) throw new Error(`submit failed: ${res.status}`);
+}
+async function apiBoard(day) {
+  // player_id is deliberately never selected: it is the write credential and
+  // the schema's column grants hide it from anon reads.
+  const q = `${CFG.SUPABASE_URL}/rest/v1/results?day=eq.${day}` +
+            `&select=player_name,combo_key,seconds,hints,assisted&order=seconds.asc&limit=200`;
+  const res = await fetch(q, { headers: { apikey: CFG.SUPABASE_ANON_KEY,
+                                          Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`board failed: ${res.status}`);
+  return res.json();
+}
+
+/* ---------- screens ---------- */
+function show(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id));
+}
+function player() { return LS.get("player", null); }
+
+/* setup */
+$("namein").oninput = () => { $("namebtn").disabled = $("namein").value.trim().length < 2; };
+$("namebtn").onclick = () => {
+  const name = $("namein").value.trim().slice(0, 20);
+  if (name.length < 2) return;
+  const id = crypto.randomUUID();
+  LS.set("player", { id, name });
+  enterPicker();
+};
+
+/* picker */
+let MENU = null;
+let picks = {};
+async function enterPicker() {
+  show("s-pick");
+  $("hello").textContent = player().name;
+  $("pickdate").textContent = DAY;
+  $("offline-banner").style.display = ONLINE ? "none" : "block";
+  if (!MENU) {
+    try {
+      MENU = await loadJson(`menu/${DAY}.json`);
+    } catch (e) {
+      $("tiers").innerHTML = `<div class="banner">No puzzle menu published for ${DAY} yet.
+        The daily bake hasn't run for this date — check back later.</div>`;
+      return;
+    }
+  }
+  picks = LS.get("picks." + DAY, {});
+  const t = $("tiers");
+  t.innerHTML = "";
+  for (const tier of TIERS) {
+    const g = document.createElement("div"); g.className = "tiergroup";
+    g.innerHTML = `<div class="tierlabel"><span class="dot" style="background:var(--t-${TIER_SLOT[tier]})"></span>
+                   ${tier === "broad" ? "Broad" : tier === "mid" ? "Middle" : "Niche"}</div>`;
+    const grid = document.createElement("div"); grid.className = "topicgrid";
+    for (const topic of MENU.tiers[tier]) {
+      const b = document.createElement("button");
+      b.className = "topicbtn" + (picks[tier] === topic.id ? " sel" : "");
+      b.textContent = topic.label;
+      b.onclick = () => {
+        if (LS.get("state." + DAY, null)) { toast("Today's choice is locked — you already started"); return; }
+        picks[tier] = topic.id;
+        LS.set("picks." + DAY, picks);
+        enterPickerRefresh();
+      };
+      grid.appendChild(b);
+    }
+    g.appendChild(grid); t.appendChild(g);
+  }
+  $("playbtn").disabled = !(picks.broad && picks.mid && picks.niche);
+}
+function enterPickerRefresh() { enterPicker(); }
+$("playbtn").onclick = () => loadPuzzle();
+
+/* ---------- puzzle load + play ---------- */
+let P = null, PZ = null;
+let badWordKeys = new Set();
+let sel = { e: 0, i: 0 };
+let timerInt = null;
+
+function comboKey() { return [picks.broad, picks.mid, picks.niche].sort().join("|"); }
+
+async function loadPuzzle() {
+  const file = `puzzles/${DAY}/${comboKey().replace(/\|/g, "__")}.json`;
+  let pz;
+  try {
+    pz = await loadJson(file);
+  } catch (e) {
+    toast("Couldn't load that combo's puzzle — try different topics");
+    return;
+  }
+  PZ = pz;
+  show("s-game");
+  $("gamedate").textContent = `${DAY} · today's puzzle`;
+  render();
+  maybeShowKbHint();
+}
+
+function deobf(pz) {
+  const raw = atob(pz.sol_obf), key = pz.id;
+  let out = "";
+  for (let i = 0; i < raw.length; i++)
+    out += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  return out.split("\n");
+}
+function puzzleState() {
+  return LS.get("state." + DAY,
+    { fill: {}, secs: 0, assisted: false, done: false, checked: [], hints: 0, submitted: false });
+}
+function saveState(st) { LS.set("state." + DAY, st); }
+
+function buildModel(pz) {
+  const sol = deobf(pz);
+  const cells = {};
+  pz.entries.forEach((e, ei) => {
+    for (let k = 0; k < e.length; k++) {
+      const r = e.dir === "A" ? e.row : e.row + k;
+      const c = e.dir === "A" ? e.col + k : e.col;
+      const key = r + "," + c;
+      cells[key] = cells[key] || { entries: {} };
+      cells[key].entries[e.dir] = ei;
+      cells[key].sol = sol[r][c];
+    }
+  });
+  for (const [key, n] of Object.entries(pz.cell_numbers)) if (cells[key]) cells[key].num = n;
+  return { ...pz, cells, sol };
+}
+function entryCells(e) {
+  const out = [];
+  for (let k = 0; k < e.length; k++)
+    out.push(e.dir === "A" ? [e.row, e.col + k] : [e.row + k, e.col]);
+  return out;
+}
+function topicVar(tid) {
+  const tier = (PZ.topics[tid] || {}).tier;
+  return "--t-" + (TIER_SLOT[tier] || "a");
+}
+
+function render() {
+  P = buildModel(PZ);
+  const st = puzzleState();
+  const chipsEl = $("chips");
+  chipsEl.innerHTML = "";
+  const ordered = Object.entries(PZ.topics)
+    .sort((a, b) => TIERS.indexOf(a[1].tier) - TIERS.indexOf(b[1].tier));
+  for (const [tid, t] of ordered) {
+    const s = document.createElement("span");
+    s.className = "chip";
+    s.style.background = `var(${topicVar(tid)})`;
+    s.textContent = t.label;
+    chipsEl.appendChild(s);
+  }
+  const g = $("grid");
+  g.innerHTML = "";
+  const chrome = 390;
+  const byWidth = Math.floor((Math.min(window.innerWidth, 520) - 24) / P.cols) - 2;
+  const byHeight = Math.floor((window.innerHeight - chrome) / P.rows) - 2;
+  const cs = Math.min(byWidth, Math.max(byHeight, 24), 44);
+  g.style.setProperty("--cs", cs + "px");
+  g.style.gridTemplateColumns = `repeat(${P.cols}, var(--cs))`;
+  for (let r = 0; r < P.rows; r++) for (let c = 0; c < P.cols; c++) {
+    const key = r + "," + c;
+    const div = document.createElement("div");
+    if (!P.cells[key]) div.className = "cell void";
+    else {
+      div.className = "cell";
+      div.dataset.key = key;
+      if (P.cells[key].num) {
+        const n = document.createElement("span");
+        n.className = "num"; n.textContent = P.cells[key].num;
+        div.appendChild(n);
+      }
+      const l = document.createElement("span");
+      l.className = "ltr"; l.textContent = st.fill[key] || "";
+      div.appendChild(l);
+      div.onclick = () => tapCell(r, c);
+    }
+    g.appendChild(div);
+  }
+  $("timer").textContent = fmt(st.secs);
+  selectEntry(firstUnsolvedEntry(), 0, true);
+  updateHighlights();
+  if (st.done) showDone(false);
+}
+
+function firstUnsolvedEntry() {
+  const st = puzzleState();
+  for (let ei = 0; ei < P.entries.length; ei++)
+    if (entryCells(P.entries[ei]).some(([r, c]) => !st.fill[r + "," + c])) return ei;
+  return 0;
+}
+function tapCell(r, c) {
+  const key = r + "," + c, info = P.cells[key];
+  if (!info) return;
+  const dirs = Object.keys(info.entries);
+  const curE = P.entries[sel.e];
+  const onSel = entryCells(curE).some(([rr, cc]) => rr === r && cc === c);
+  let dir;
+  if (onSel && dirs.length === 2) {
+    dir = curE.dir === "A" ? "D" : "A";
+    if (!(dir in info.entries)) dir = curE.dir;
+  } else if (onSel) dir = curE.dir;
+  else dir = dirs.includes("A") ? "A" : "D";
+  const ei = info.entries[dir] ?? info.entries[dirs[0]];
+  const e = P.entries[ei];
+  selectEntry(ei, e.dir === "A" ? c - e.col : r - e.row);
+}
+function selectEntry(ei, off, quiet) {
+  sel = { e: ei, i: off ?? 0 };
+  const e = P.entries[ei];
+  $("cluedot").style.background = `var(${topicVar(e.topic)})`;
+  $("cluetext").innerHTML = `<b>${e.number}${e.dir}</b>${escapeHtml(e.clue)} <b style="margin-left:4px">(${e.length})</b>`;
+  if (!quiet) updateHighlights();
+}
+function updateHighlights() {
+  const st = puzzleState();
+  const e = P.entries[sel.e];
+  const wordKeys = new Set(entryCells(e).map(([r, c]) => r + "," + c));
+  const activeKey = entryCells(e)[sel.i].join(",");
+  document.querySelectorAll(".cell[data-key]").forEach((div) => {
+    const k = div.dataset.key;
+    div.classList.toggle("word", wordKeys.has(k) && k !== activeKey);
+    div.classList.toggle("active", k === activeKey);
+    div.classList.toggle("bad", (st.checked || []).includes(k) &&
+      st.fill[k] && st.fill[k] !== P.cells[k].sol);
+    div.classList.toggle("badword", badWordKeys.has(k));
+    div.querySelector(".ltr").textContent = st.fill[k] || "";
+  });
+}
+
+function typeLetter(ch) {
+  const st = puzzleState();
+  if (st.done) return;
+  badWordKeys.clear();
+  startTimer();
+  const e = P.entries[sel.e];
+  const cells = entryCells(e);
+  const key = cells[sel.i].join(",");
+  st.fill[key] = ch;
+  st.checked = (st.checked || []).filter((k) => k !== key);
+  saveState(st);
+  let ni = sel.i + 1;
+  while (ni < cells.length && st.fill[cells[ni].join(",")]) ni++;
+  if (ni < cells.length) sel.i = ni;
+  else {
+    const complete = cells.every(([r, c]) => st.fill[r + "," + c]);
+    if (complete && !checkComplete()) {
+      const next = nextEntryWithGap();
+      if (next !== null) { selectEntry(next, firstGap(next)); return; }
+    } else if (sel.i < cells.length - 1) sel.i++;
+  }
+  updateHighlights();
+  checkComplete();
+}
+function firstGap(ei) {
+  const st = puzzleState();
+  const cells = entryCells(P.entries[ei]);
+  for (let k = 0; k < cells.length; k++) if (!st.fill[cells[k].join(",")]) return k;
+  return 0;
+}
+function nextEntryWithGap() {
+  const st = puzzleState();
+  for (let d = 1; d <= P.entries.length; d++) {
+    const ei = (sel.e + d) % P.entries.length;
+    if (entryCells(P.entries[ei]).some(([r, c]) => !st.fill[r + "," + c])) return ei;
+  }
+  return null;
+}
+function backspace() {
+  const st = puzzleState();
+  if (st.done) return;
+  badWordKeys.clear();
+  const cells = entryCells(P.entries[sel.e]);
+  let key = cells[sel.i].join(",");
+  if (!st.fill[key] && sel.i > 0) { sel.i--; key = cells[sel.i].join(","); }
+  delete st.fill[key];
+  st.checked = (st.checked || []).filter((k) => k !== key);
+  saveState(st);
+  updateHighlights();
+}
+function checkComplete() {
+  const st = puzzleState();
+  const keys = Object.keys(P.cells);
+  if (!keys.every((k) => st.fill[k])) return false;
+  const correct = keys.every((k) => st.fill[k] === P.cells[k].sol);
+  if (correct) {
+    if (!st.done) {
+      st.done = true; saveState(st);
+      stopTimer();
+      submitResult(st);
+      showDone(true);
+    }
+    return true;
+  }
+  badWordKeys = new Set();
+  let nWrong = 0;
+  P.entries.forEach((e) => {
+    const cells = entryCells(e).map(([r, c]) => r + "," + c);
+    if (cells.some((k) => st.fill[k] !== P.cells[k].sol)) {
+      nWrong++;
+      cells.forEach((k) => badWordKeys.add(k));
+    }
+  });
+  updateHighlights();
+  toast(nWrong === 1 ? "1 word isn't right yet" : `${nWrong} words aren't right yet`);
+  return false;
+}
+
+/* ---- timer ---- */
+function startTimer() {
+  if (timerInt || puzzleState().done) return;
+  timerInt = setInterval(() => {
+    const st = puzzleState();
+    st.secs++; saveState(st);
+    $("timer").textContent = fmt(st.secs);
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInt); timerInt = null; }
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopTimer();
+  else if ($("s-game").classList.contains("on") && !puzzleState().done &&
+           Object.keys(puzzleState().fill).length) startTimer();
+});
+function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+
+/* ---- tools ---- */
+$("hintbtn").onclick = () => {
+  const st = puzzleState();
+  if (st.done) return;
+  badWordKeys.clear();
+  const cells = entryCells(P.entries[sel.e]);
+  let target = null, ti = sel.i;
+  for (let k = 0; k < cells.length; k++) {
+    const kk = cells[k].join(",");
+    if (!st.fill[kk] || st.fill[kk] !== P.cells[kk].sol) { target = kk; ti = k; break; }
+  }
+  if (!target) {
+    const ei = nextEntryWithGap();
+    if (ei === null) return;
+    selectEntry(ei, firstGap(ei));
+    const c2 = entryCells(P.entries[sel.e]);
+    target = c2[sel.i].join(","); ti = sel.i;
+  }
+  st.fill[target] = P.cells[target].sol;
+  st.secs += 20;
+  st.hints = (st.hints || 0) + 1;
+  saveState(st);
+  startTimer();
+  $("timer").textContent = fmt(st.secs);
+  sel.i = ti;
+  toast(`Hint used: +0:20 (${st.hints} total)`);
+  updateHighlights();
+  checkComplete();
+};
+$("lbbtn").onclick = () => showDone(false, true);
+// Check/Reveal/Topics removed: they gated on confirm(), which the artifact's
+// sandboxed iframe blocks, so they were dead. Hint (+1:00, ranked) is the only
+// assist now; wrong-word red feedback on a full grid still fires automatically.
+
+/* ---- results ---- */
+async function submitResult(st) {
+  if (st.submitted) return;
+  st.submitted = true; saveState(st);
+  if (!ONLINE) return;
+  try {
+    await apiSubmit({ player_id: player().id, player_name: player().name, day: DAY,
+                      combo_key: PZ.combo_key, seconds: st.secs, hints: st.hints || 0,
+                      assisted: !!st.assisted });
+  } catch (e) {
+    st.submitted = false; saveState(st);
+    toast("Couldn't post your result — will retry when you reopen the board");
+  }
+}
+
+async function showDone(justFinished, lbOnly) {
+  const st = puzzleState();
+  if (st.done && !st.submitted) await submitResult(st);
+  const ranked = st.done && !st.assisted;
+  let rows = [], boardNote = "";
+  if (ONLINE) {
+    try { rows = await apiBoard(DAY); }
+    catch (e) { boardNote = "Leaderboard unavailable right now."; }
+  } else {
+    boardNote = "Offline demo: no shared leaderboard configured.";
+    if (st.done) rows = [{ player_name: player().name,
+                           combo_key: PZ ? PZ.combo_key : "", seconds: st.secs,
+                           hints: st.hints || 0, assisted: !!st.assisted }];
+  }
+  // "me" is matched on submitted fields (player_id is never sent back to clients)
+  const isMe = (r) => st.done && r.player_name === player().name &&
+    r.seconds === st.secs && !!r.assisted === !!st.assisted;
+  const rankedRows = rows.filter((r) => !r.assisted).sort((a, b) => a.seconds - b.seconds);
+  const assistedRows = rows.filter((r) => r.assisted).sort((a, b) => a.seconds - b.seconds);
+  const myRank = ranked ? rankedRows.findIndex(isMe) + 1 : 0;
+  const total = rankedRows.length;
+  const pct = myRank ? Math.max(1, Math.round((myRank / total) * 100)) : 0;
+
+  const lbHtml = rankedRows.map((r, i) => rowHtml(r, i + 1, isMe(r)))
+    .concat(assistedRows.map((r) => rowHtml(r, "–", isMe(r)))).join("");
+  const share = `TRIVIUM 🧩 ${DAY.slice(5)} · ${fmt(st.secs)}` +
+    (st.hints ? ` · ${st.hints}💡` : "") +
+    (ranked && myRank ? ` · ${ord(myRank)} of ${total}` : (st.assisted ? " · assisted" : ""));
+  const head = lbOnly && !st.done
+    ? `<h2>Today's board</h2><div class="sub">Everyone playing ${DAY}, all topic combos</div>`
+    : `<h2>${st.assisted ? "Solved (assisted)" : "Solved!"}</h2>
+       <div class="big">${fmt(st.secs)}</div>
+       ${ranked && myRank ? `<div class="rank"><b>${ord(myRank)}</b> of ${total} playing today${total > 1 ? ` — top ${pct}%` : ""}</div>`
+         : ranked ? `<div class="rank">You're on the board.</div>`
+         : `<div class="rank">Assisted solves appear on the board but aren't ranked.</div>`}
+       ${st.hints ? `<div class="sub">Time includes ${st.hints} hint${st.hints === 1 ? "" : "s"} (+${fmt(st.hints * 20)} penalty)</div>` : ""}`;
+  $("modalcard").innerHTML = head +
+    `<div class="lb"><h3>Today — all players, all combos</h3>
+       ${lbHtml || `<div class='sub'>${boardNote || "No results posted yet today. Be the first!"}</div>`}
+       ${lbHtml && boardNote ? `<div class='sub'>${boardNote}</div>` : ""}</div>
+     <div class="btnrow">
+       ${st.done ? `<button class="btn primary" id="sharebtn">Copy result</button>` : ""}
+       <button class="btn ghost" id="closebtn">Close</button>
+     </div>
+     <div class="note">Different combos differ in difficulty; the board shows each player's
+     topics for context. Times are self-reported by the app (test build).</div>`;
+  $("modal").classList.add("show");
+  $("closebtn").onclick = () => $("modal").classList.remove("show");
+  const sb = $("sharebtn");
+  if (sb) sb.onclick = () => {
+    (navigator.clipboard ? navigator.clipboard.writeText(share) : Promise.reject())
+      .then(() => toast("Result copied"))
+      .catch(() => toast(share));
+  };
+}
+function rowHtml(r, rank, me) {
+  // every server-derived string is escaped: any anon-key holder can insert rows
+  const combo = (r.combo_key || "").split("|").map(comboShort).join("·");
+  return `<div class="lbrow${me ? " me" : ""}"><span class="n">${escapeHtml(String(rank))}.</span>` +
+    `<span>${escapeHtml(String(r.player_name))}${r.assisted ? " <i style='font-size:.68rem'>(assisted)</i>" : ""}</span>` +
+    `<span class="combo">${escapeHtml(combo)}</span>` +
+    `<span class="t">${fmt(Number(r.seconds) || 0)}${r.hints ? "💡" : ""}</span></div>`;
+}
+function comboShort(tid) {
+  return (tid || "").split("-").map((w) => w[0] ? w[0].toUpperCase() : "").join("");
+}
+function ord(n) { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+/* ---- keyboard ---- */
+document.querySelectorAll(".krow").forEach((row) => {
+  if (row.dataset.extra) {
+    const bs = document.createElement("button");
+    bs.className = "key wide"; bs.textContent = "⌫";
+    bs.onclick = backspace;
+    row.appendChild(bs);
+  }
+  [...row.dataset.keys].forEach((ch) => {
+    const b = document.createElement("button");
+    b.className = "key"; b.textContent = ch;
+    b.onclick = () => typeLetter(ch);
+    row.insertBefore(b, row.lastChild && row.dataset.extra ? row.lastChild : null);
+  });
+});
+document.addEventListener("keydown", (ev) => {
+  if (!$("s-game").classList.contains("on") || $("modal").classList.contains("show")) return;
+  if (/^[a-zA-Z]$/.test(ev.key)) typeLetter(ev.key.toUpperCase());
+  else if (ev.key === "Backspace") { ev.preventDefault(); backspace(); }
+  else if (["ArrowRight", "ArrowDown", "Tab"].includes(ev.key)) {
+    ev.preventDefault(); selectEntry((sel.e + 1) % P.entries.length, 0); updateHighlights();
+  } else if (["ArrowLeft", "ArrowUp"].includes(ev.key)) {
+    ev.preventDefault(); selectEntry((sel.e - 1 + P.entries.length) % P.entries.length, 0); updateHighlights();
+  }
+});
+$("prevclue").onclick = () => { selectEntry((sel.e - 1 + P.entries.length) % P.entries.length, 0); updateHighlights(); };
+$("nextclue").onclick = () => { selectEntry((sel.e + 1) % P.entries.length, 0); updateHighlights(); };
+
+/* ---- misc ---- */
+let toastT = null;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200);
+}
+function escapeHtml(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function maybeShowKbHint() {
+  if (LS.get("hintDismissed", false)) return;
+  requestAnimationFrame(() => {
+    const kb = $("kb").getBoundingClientRect();
+    if (kb.bottom > window.innerHeight + 4) $("kbhint").classList.add("show");
+    else $("kbhint").classList.remove("show");
+  });
+}
+function dismissKbHint() {
+  if (!$("kbhint").classList.contains("show")) return;
+  $("kbhint").classList.remove("show");
+  LS.set("hintDismissed", true);
+}
+$("kbhint").onclick = () => { $("kb").scrollIntoView({ behavior: "smooth", block: "end" }); dismissKbHint(); };
+window.addEventListener("scroll", dismissKbHint, { passive: true });
+document.addEventListener("keydown", dismissKbHint);
+window.addEventListener("resize", () => {
+  if ($("s-game").classList.contains("on")) { const s = sel; render(); sel = s; updateHighlights(); }
+});
+
+/* ---- boot ---- */
+(async function boot() {
+  if (!player()) { show("s-setup"); return; }
+  const pk = LS.get("picks." + DAY, {});
+  const started = LS.get("state." + DAY, null);
+  if (pk.broad && pk.mid && pk.niche && started) {
+    picks = pk;
+    await loadPuzzle();
+  } else {
+    enterPicker();
+  }
+})();
+</script>
+</body>
+</html>
