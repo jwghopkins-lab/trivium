@@ -152,6 +152,22 @@
   @keyframes hintpulse { 0%,100% { transform: translateX(-50%) translateY(0); }
                          50% { transform: translateX(-50%) translateY(-6px); } }
   @media (prefers-reduced-motion: reduce) { #kbhint { animation: none; } * { transition: none !important; } }
+  #fbbtn { position: fixed; left: 10px; bottom: 10px; z-index: 18; width: 38px; height: 38px;
+           border-radius: 50%; border: 1px solid var(--line); background: var(--panel);
+           font-size: 1.05rem; cursor: pointer; opacity: .75; }
+  /* in-game the keyboard owns the bottom edge: feedback moves into the toolrow */
+  body:has(#s-game.on) #fbbtn { display: none; }
+  #fbpanel { position: fixed; inset: 0; background: rgba(10,14,18,.55); display: none;
+             align-items: center; justify-content: center; padding: 18px; z-index: 26; }
+  #fbpanel.show { display: flex; }
+  .fbcard { background: var(--panel); color: var(--ink); border-radius: 16px;
+            padding: 18px; width: 100%; max-width: 380px; }
+  .fbcard b { font-size: .95rem; }
+  .fbcard textarea { width: 100%; margin: 10px 0; padding: 10px; font-size: .9rem;
+                     border: 1px solid var(--line); border-radius: 10px; resize: vertical;
+                     background: var(--cell); color: var(--ink); font-family: inherit; }
+  .fbrow { display: flex; gap: 8px; }
+  .fbrow .btn { flex: 1; padding: 10px 0; font-size: .88rem; }
   #toast { position: fixed; bottom: 190px; left: 50%; transform: translateX(-50%);
            background: var(--ink); color: var(--paper); font-size: .8rem; padding: 8px 16px;
            border-radius: 999px; opacity: 0; transition: opacity .25s; pointer-events: none;
@@ -213,6 +229,7 @@
     <div class="toolrow">
       <button class="tool" id="hintbtn">Hint +0:20</button>
       <button class="tool" id="lbbtn">Leaderboard</button>
+      <button class="tool" id="fbtool" title="Send feedback">💬</button>
     </div>
     <div class="krow" data-keys="QWERTYUIOP"></div>
     <div class="krow" data-keys="ASDFGHJKL"></div>
@@ -222,6 +239,18 @@
 
 <button id="kbhint">⌨ Keys below — scroll ↓</button>
 <div id="modal"><div class="card" id="modalcard"></div></div>
+<button id="fbbtn" title="Send feedback">💬</button>
+<div id="fbpanel">
+  <div class="fbcard">
+    <b>Feedback</b>
+    <textarea id="fbtext" maxlength="500" rows="4"
+      placeholder="Bugs, ideas, clue gripes — anything."></textarea>
+    <div class="fbrow">
+      <button class="btn ghost" id="fbcancel">Cancel</button>
+      <button class="btn primary" id="fbsend">Send</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script src="config.js"></script>
@@ -236,7 +265,8 @@ const LS = {
   get(k, d) { try { return JSON.parse(localStorage.getItem("trivium2." + k)) ?? d; } catch { return d; } },
   set(k, v) { localStorage.setItem("trivium2." + k, JSON.stringify(v)); },
 };
-const DAY = (() => {
+const DAY = window.TRIVIUM_FORCE_DAY || (() => {
+  // preview builds may pin a date via TRIVIUM_FORCE_DAY; normally undefined
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
          "-" + String(d.getDate()).padStart(2, "0");
@@ -325,6 +355,29 @@ async function apiBoard(day) {
   return res.json();
 }
 
+/* ---------- telemetry (write-only from clients; see sql/telemetry.sql) ---------- */
+// One stable id per browser so the funnel (load -> name -> start -> words ->
+// result) joins up even before a name exists. Becomes the player id at signup.
+function deviceId() {
+  let d = LS.get("device", null);
+  if (!d) { d = crypto.randomUUID(); LS.set("device", d); }
+  return d;
+}
+// Fire-and-forget: gameplay must never stall or break on telemetry, so all
+// failures (table missing, offline, blocked) are swallowed. Returns ok bool
+// for the one caller that cares (feedback).
+function logEvent(kind, detail) {
+  if (!ONLINE) return Promise.resolve(false);
+  return fetch(`${CFG.SUPABASE_URL}/rest/v1/events`, {
+    method: "POST", keepalive: true,
+    headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}`,
+               "Content-Type": "application/json" },
+    body: JSON.stringify({ player_id: deviceId(), player_name: (player() || {}).name || "",
+                           day: DAY, combo_key: (PZ && PZ.combo_key) || "",
+                           kind, detail: detail || {} }),
+  }).then((r) => r.ok).catch(() => false);
+}
+
 /* ---------- screens ---------- */
 function show(id) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id));
@@ -336,8 +389,8 @@ $("namein").oninput = () => { $("namebtn").disabled = $("namein").value.trim().l
 $("namebtn").onclick = () => {
   const name = $("namein").value.trim().slice(0, 20);
   if (name.length < 2) return;
-  const id = crypto.randomUUID();
-  LS.set("player", { id, name });
+  LS.set("player", { id: deviceId(), name });
+  logEvent("name", {});
   enterPicker();
 };
 
@@ -408,6 +461,11 @@ async function loadPuzzle() {
   $("gamedate").textContent = `${DAY} · today's puzzle`;
   render();
   maybeShowKbHint();
+  const st0 = puzzleState();
+  if (!st0.startLogged) {
+    st0.startLogged = true; saveState(st0);
+    logEvent("start", { resumed: Object.keys(st0.fill).length > 0 });
+  }
 }
 
 function deobf(pz) {
@@ -559,22 +617,51 @@ function typeLetter(ch) {
   const e = P.entries[sel.e];
   const cells = entryCells(e);
   const key = cells[sel.i].join(",");
+  const wasComplete = cells.every(([r, c]) => st.fill[r + "," + c]);
   st.fill[key] = ch;
   typedThisWord.add(key);
   st.checked = (st.checked || []).filter((k) => k !== key);
   saveState(st);
-  let ni = sel.i + 1;
-  while (ni < cells.length && st.fill[cells[ni].join(",")]) ni++;
-  if (ni < cells.length) sel.i = ni;
-  else {
-    const complete = cells.every(([r, c]) => st.fill[r + "," + c]);
-    if (complete && !checkComplete()) {
+  // Cursor: step to the immediately following cell, even when it already holds
+  // a letter — editing inside a filled word walks along it one cell at a time
+  // instead of jumping to the next gap. Only a keystroke that *finishes* a word
+  // (it was incomplete, now it isn't) hands over to the next-word rules, as does
+  // editing the last cell of an already-full word — there is nothing after it.
+  const justFinished = !wasComplete && cells.every(([r, c]) => st.fill[r + "," + c]);
+  const atEnd = sel.i >= cells.length - 1;
+  if (justFinished || (wasComplete && atEnd)) {
+    if (!checkComplete()) {
       const next = bestNextEntry(sel.e);
-      if (next !== null) { selectEntry(next, firstGap(next)); return; }
-    } else if (sel.i < cells.length - 1) sel.i++;
+      if (next !== null) { selectEntry(next, firstGap(next)); logWordProgress(); return; }
+    }
+  } else if (!atEnd) {
+    sel.i++;
+  } else {
+    // last cell typed but gaps remain behind: wrap back to the first of them
+    const g = cells.findIndex(([r, c]) => !st.fill[r + "," + c]);
+    if (g >= 0) sel.i = g;
   }
   updateHighlights();
   checkComplete();
+  logWordProgress();
+}
+
+// Per-word pacing telemetry: the first time an entry is fully correct, record
+// the elapsed seconds against it (persisted in state so reloads don't re-log).
+function logWordProgress() {
+  const st = puzzleState();
+  st.wlog = st.wlog || {};
+  let changed = false;
+  P.entries.forEach((e, ei) => {
+    if (st.wlog[ei] !== undefined) return;
+    const cells = entryCells(e).map(([r, c]) => r + "," + c);
+    if (!cells.every((k) => st.fill[k] && st.fill[k] === P.cells[k].sol)) return;
+    st.wlog[ei] = st.secs;
+    changed = true;
+    logEvent("word", { num: e.number, dir: e.dir, len: e.length, topic: e.topic,
+                       t: st.secs, i: Object.keys(st.wlog).length, n: P.entries.length });
+  });
+  if (changed) saveState(st);
 }
 
 // After finishing a word, go where a human would:
@@ -638,10 +725,15 @@ function backspace() {
   badWordKeys.clear();
   const cells = entryCells(P.entries[sel.e]);
   let key = cells[sel.i].join(",");
-  if (!st.fill[key] && sel.i > 0) { sel.i--; key = cells[sel.i].join(","); }
+  const hadLetter = !!st.fill[key];
+  // on an empty cell, retreat first and clear the letter there instead
+  if (!hadLetter && sel.i > 0) { sel.i--; key = cells[sel.i].join(","); }
   delete st.fill[key];
   st.checked = (st.checked || []).filter((k) => k !== key);
   saveState(st);
+  // clearing the cell under the cursor retreats one, so repeated presses walk
+  // backwards; at the word's first cell the cursor stays put, ready to retype
+  if (hadLetter && sel.i > 0) sel.i--;
   updateHighlights();
 }
 function checkComplete() {
@@ -683,10 +775,26 @@ function startTimer() {
 }
 function stopTimer() { clearInterval(timerInt); timerInt = null; }
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopTimer();
+  if (document.hidden) { stopTimer(); sendProgress(); }
   else if ($("s-game").classList.contains("on") && !puzzleState().done &&
            Object.keys(puzzleState().fill).length) startTimer();
 });
+// Abandonment telemetry: snapshot progress whenever the player leaves an
+// unfinished puzzle (tab hidden / page closed). keepalive lets it complete.
+let lastProgressSig = "";
+function sendProgress() {
+  if (!P || !$("s-game").classList.contains("on")) return;
+  const st = puzzleState();
+  if (st.done) return;
+  const filled = Object.keys(st.fill).length;
+  if (!filled) return;
+  const sig = filled + "/" + st.secs;
+  if (sig === lastProgressSig) return;
+  lastProgressSig = sig;
+  logEvent("progress", { t: st.secs, filled, cells: Object.keys(P.cells).length,
+                         words: Object.keys(st.wlog || {}).length, n: P.entries.length });
+}
+window.addEventListener("pagehide", sendProgress);
 function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
 
 /* ---- tools ---- */
@@ -724,8 +832,10 @@ $("hintbtn").onclick = () => {
   $("timer").textContent = fmt(st.secs);
   sel.i = ti;
   toast(`Hint used: +0:20 (${MAX_HINTS - st.hints} left)`);
+  logEvent("hint", { t: st.secs, n: st.hints });
   updateHighlights();
   checkComplete();
+  logWordProgress();
 };
 $("lbbtn").onclick = () => showDone(false, true);
 // Check/Reveal/Topics removed: they gated on confirm(), which the artifact's
@@ -889,7 +999,8 @@ document.querySelectorAll(".krow").forEach((row) => {
   });
 });
 document.addEventListener("keydown", (ev) => {
-  if (!$("s-game").classList.contains("on") || $("modal").classList.contains("show")) return;
+  if (!$("s-game").classList.contains("on") || $("modal").classList.contains("show") ||
+      $("fbpanel").classList.contains("show")) return;
   if (/^[a-zA-Z]$/.test(ev.key)) typeLetter(ev.key.toUpperCase());
   else if (ev.key === "Backspace") { ev.preventDefault(); backspace(); }
   else if (["ArrowRight", "ArrowDown", "Tab"].includes(ev.key)) {
@@ -924,12 +1035,37 @@ function dismissKbHint() {
 $("kbhint").onclick = () => { $("kb").scrollIntoView({ behavior: "smooth", block: "end" }); dismissKbHint(); };
 window.addEventListener("scroll", dismissKbHint, { passive: true });
 document.addEventListener("keydown", dismissKbHint);
+
+/* ---- feedback ---- */
+function openFeedback() {
+  if (!ONLINE) { toast("Feedback needs the online edition — use the website"); return; }
+  $("fbpanel").classList.add("show");
+  $("fbtext").focus();
+}
+$("fbbtn").onclick = openFeedback;
+$("fbtool").onclick = openFeedback;
+$("fbcancel").onclick = () => $("fbpanel").classList.remove("show");
+$("fbsend").onclick = async () => {
+  const msg = $("fbtext").value.trim();
+  if (!msg) { $("fbpanel").classList.remove("show"); return; }
+  $("fbsend").disabled = true;
+  const ok = await logEvent("feedback", { msg: msg.slice(0, 500) });
+  $("fbsend").disabled = false;
+  if (ok) {
+    $("fbtext").value = "";
+    $("fbpanel").classList.remove("show");
+    toast("Thanks — feedback sent");
+  } else {
+    toast("Couldn't send right now — try again later");
+  }
+};
 window.addEventListener("resize", () => {
   if ($("s-game").classList.contains("on")) { const s = sel; render(); sel = s; updateHighlights(); }
 });
 
 /* ---- boot ---- */
 (async function boot() {
+  logEvent("load", { named: !!player(), started: !!LS.get("state." + DAY, null) });
   if (!player()) { show("s-setup"); return; }
   const pk = LS.get("picks." + DAY, {});
   const started = LS.get("state." + DAY, null);

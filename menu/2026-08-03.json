@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-03",
+ "tiers": {
+  "broad": [
+   {
+    "id": "fashion-style",
+    "label": "Fashion & Style"
+   },
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "the-human-body",
+    "label": "The Human Body"
+   }
+  ],
+  "mid": [
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   },
+   {
+    "id": "ocean-marine",
+    "label": "Ocean & Marine Life"
+   },
+   {
+    "id": "video-games",
+    "label": "Video Games"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-egypt",
+    "label": "Ancient Egypt"
+   },
+   {
+    "id": "dinosaurs",
+    "label": "Dinosaurs"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   }
+  ]
+ }
+}
