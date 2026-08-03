@@ -40,12 +40,14 @@ jobs:
       - name: Publish if changed
         run: |
           set -euo pipefail
-          if git diff --quiet -- digest.html; then
-            echo "digest unchanged, nothing to publish"; exit 0
-          fi
           git config user.name  "TRIVIUM digest"
           git config user.email "noreply@anthropic.com"
+          # stage first: `git diff` reports NO change for an untracked file, so
+          # testing before staging silently skips the very first publish
           git add digest.html
+          if git diff --cached --quiet -- digest.html; then
+            echo "digest unchanged, nothing to publish"; exit 0
+          fi
           git commit -m "daily digest $(TZ=Europe/London date +%F)"
           # the release job may have pushed while we were building
           for i in 1 2 3; do
