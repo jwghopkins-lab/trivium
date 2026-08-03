@@ -1,0 +1,61 @@
+# End-to-end test of the Supabase telemetry table from a runner with real
+# network access (the dev sandbox cannot reach supabase.co). Uses only the
+# public anon key already shipped in config.js. Safe to re-run any time.
+name: telemetry-test
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/telemetry-test.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run telemetry checks
+        run: |
+          set -u
+          SUPA="https://kyraqgmumfdxvcplwqge.supabase.co"
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: "[^"]*"' config.js | cut -d'"' -f2)
+          AUTH=(-H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          fail=0
+
+          post() { curl -sS -o /tmp/body -w "%{http_code}" -X POST \
+                   "$SUPA/rest/v1/events" "${AUTH[@]}" \
+                   -H "Content-Type: application/json" -d "$1"; }
+
+          echo "== 1. valid 'load' event inserts =="
+          code=$(post '{"player_id":"00000000-0000-4000-8000-0000000000e2","player_name":"CITest","day":"2026-08-03","combo_key":"","kind":"load","detail":{"src":"github-actions-e2e"}}')
+          echo "HTTP $code $(cat /tmp/body)"
+          [ "$code" = "201" ] && echo "PASS insert" || { echo "FAIL insert"; fail=1; }
+
+          echo "== 2. valid 'feedback' event inserts (the button's path) =="
+          code=$(post '{"player_id":"00000000-0000-4000-8000-0000000000e2","player_name":"CITest","day":"2026-08-03","combo_key":"","kind":"feedback","detail":{"msg":"e2e test feedback - ignore"}}')
+          echo "HTTP $code $(cat /tmp/body)"
+          [ "$code" = "201" ] && echo "PASS feedback" || { echo "FAIL feedback"; fail=1; }
+
+          echo "== 3. invalid kind is rejected by CHECK constraint =="
+          code=$(post '{"player_id":"00000000-0000-4000-8000-0000000000e2","player_name":"CITest","day":"2026-08-03","combo_key":"","kind":"hacked","detail":{}}')
+          echo "HTTP $code $(cat /tmp/body)"
+          case "$code" in 4*) echo "PASS constraint";; *) echo "FAIL constraint (expected 4xx)"; fail=1;; esac
+
+          echo "== 4. anon must NOT be able to read events =="
+          code=$(curl -sS -o /tmp/body -w "%{http_code}" "$SUPA/rest/v1/events?select=kind&limit=1" "${AUTH[@]}")
+          echo "HTTP $code $(cat /tmp/body | head -c 300)"
+          if [ "$code" = "200" ]; then echo "FAIL events readable by anon"; fail=1; else echo "PASS events write-only"; fi
+
+          echo "== 5. anon must NOT be able to read feedback_inbox view =="
+          code=$(curl -sS -o /tmp/body -w "%{http_code}" "$SUPA/rest/v1/feedback_inbox?select=message&limit=1" "${AUTH[@]}")
+          echo "HTTP $code $(cat /tmp/body | head -c 300)"
+          if [ "$code" = "200" ]; then echo "LEAK feedback_inbox readable by anon - needs revoke"; fail=1; else echo "PASS feedback_inbox private"; fi
+
+          echo "== 6. results table still accepts inserts (regression) =="
+          code=$(curl -sS -o /tmp/body -w "%{http_code}" -X POST "$SUPA/rest/v1/results" "${AUTH[@]}" \
+                 -H "Content-Type: application/json" \
+                 -d '{"player_id":"00000000-0000-4000-8000-0000000000e2","player_name":"CITest","day":"2000-01-01","combo_key":"chess|music|dinosaurs","seconds":9999,"hints":0,"assisted":true}')
+          echo "HTTP $code $(cat /tmp/body)"
+          case "$code" in 201|409) echo "PASS results";; *) echo "FAIL results"; fail=1;; esac
+
+          echo "===================="
+          [ $fail = 0 ] && echo "ALL TELEMETRY CHECKS PASS" || echo "TELEMETRY CHECKS FAILED"
+          exit $fail
