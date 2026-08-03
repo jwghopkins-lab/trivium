@@ -1,0 +1,27 @@
+# Dumps the anon-readable game data to the run log so it can be analysed.
+# Reads only what any site visitor can already read with the public anon key:
+# the results table (the leaderboard) and, if installed, the telemetry_export
+# RPC (word-pacing events; feedback is explicitly excluded server-side).
+name: telemetry-pull
+on:
+  workflow_dispatch:
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dump results + events
+        run: |
+          set -u
+          SUPA="https://kyraqgmumfdxvcplwqge.supabase.co"
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: "[^"]*"' config.js | cut -d'"' -f2)
+          AUTH=(-H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "== RESULTS =="
+          curl -sS "$SUPA/rest/v1/results?select=player_name,day,combo_key,seconds,hints,assisted&order=day.desc,seconds.asc&limit=200" "${AUTH[@]}"
+          echo
+          echo "== EVENTS (via telemetry_export RPC; 404 means not installed yet) =="
+          curl -sS -o /tmp/ev -w "HTTP %{http_code}\n" -X POST "$SUPA/rest/v1/rpc/telemetry_export" "${AUTH[@]}" -H "Content-Type: application/json" -d '{}'
+          cat /tmp/ev
+          echo
+          echo "== PULL COMPLETE =="
