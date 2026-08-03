@@ -260,6 +260,10 @@ const CFG = window.TRIVIUM_CONFIG || {};
 const ONLINE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
 const TIER_SLOT = { broad: "a", mid: "b", niche: "c" };
 const TIERS = ["broad", "mid", "niche"];
+// Shelf names, nautical throughout: you steer from the wheelhouse, work a deck
+// down, then get out of your depth. Tier ids stay broad/mid/niche everywhere
+// else — these are display labels only.
+const SHELF_LABEL = { broad: "Wheelhouse", mid: "Below Deck", niche: "The Deep End" };
 const $ = (id) => document.getElementById(id);
 const LS = {
   get(k, d) { try { return JSON.parse(localStorage.getItem("trivium2." + k)) ?? d; } catch { return d; } },
@@ -417,7 +421,7 @@ async function enterPicker() {
   for (const tier of TIERS) {
     const g = document.createElement("div"); g.className = "tiergroup";
     g.innerHTML = `<div class="tierlabel"><span class="dot" style="background:var(--t-${TIER_SLOT[tier]})"></span>
-                   ${tier === "broad" ? "Wheelhouse" : tier === "mid" ? "Enthusiast" : "Niche"}</div>`;
+                   ${SHELF_LABEL[tier]}</div>`;
     const grid = document.createElement("div"); grid.className = "topicgrid";
     for (const topic of MENU.tiers[tier]) {
       const b = document.createElement("button");

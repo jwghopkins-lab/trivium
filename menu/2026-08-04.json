@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-04",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-seaside",
+    "label": "At the Seaside"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "things-that-beep",
+    "label": "Things That Beep"
+   }
+  ],
+  "mid": [
+   {
+    "id": "birds-birdwatching",
+    "label": "Birds & Birdwatching"
+   },
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "the-funfair",
+    "label": "At the Funfair"
+   }
+  ],
+  "niche": [
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "pirates",
+    "label": "Pirates & the High Seas"
+   }
+  ]
+ }
+}
