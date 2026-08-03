@@ -1,0 +1,55 @@
+# Builds the daily TRIVIUM digest and publishes it to the site.
+#
+# Runs in Actions rather than in a Claude session on purpose: Actions has
+# network access to Supabase (the dev sandbox does not) and its schedule does
+# not depend on any session being awake.
+#
+# 20:40 UTC = 21:40 BST in summer, 20:40 GMT in winter — evening either way,
+# and never near midnight, so it cannot drift across a date boundary.
+name: digest
+on:
+  schedule:
+    - cron: "40 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trivium-publish     # never race the pages deploy or another digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build digest
+        run: |
+          set -euo pipefail
+          SUPA="https://kyraqgmumfdxvcplwqge.supabase.co"
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: "[^"]*"' config.js | cut -d'"' -f2)
+          DAY=$(TZ=Europe/London date +%F)
+          echo "building digest for $DAY"
+          curl -sS --fail --retry 3 --retry-delay 5 \
+            "$SUPA/rest/v1/results?select=player_name,day,combo_key,seconds,hints,assisted&order=day.desc&limit=2000" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -o /tmp/results.json
+          python3 tools/build_digest.py /tmp/results.json pars "$DAY" digest.html
+
+      - name: Publish if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- digest.html; then
+            echo "digest unchanged, nothing to publish"; exit 0
+          fi
+          git config user.name  "TRIVIUM digest"
+          git config user.email "noreply@anthropic.com"
+          git add digest.html
+          git commit -m "daily digest $(TZ=Europe/London date +%F)"
+          # the release job may have pushed while we were building
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "push race, retrying ($i)"; sleep 5
+          done
+          echo "could not push digest after 3 attempts"; exit 1
