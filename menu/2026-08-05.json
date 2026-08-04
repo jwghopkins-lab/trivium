@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-05",
+ "tiers": {
+  "broad": [
+   {
+    "id": "capital-cities",
+    "label": "Capital Cities"
+   },
+   {
+    "id": "jobs-professions",
+    "label": "Jobs & Professions"
+   },
+   {
+    "id": "weather-seasons",
+    "label": "Weather & Seasons"
+   }
+  ],
+  "mid": [
+   {
+    "id": "camping-outdoors",
+    "label": "Camping & the Outdoors"
+   },
+   {
+    "id": "disney",
+    "label": "Disney"
+   },
+   {
+    "id": "musical-instruments",
+    "label": "Musical Instruments"
+   }
+  ],
+  "niche": [
+   {
+    "id": "feudal-japan",
+    "label": "Samurai & Feudal Japan"
+   },
+   {
+    "id": "mr-men",
+    "label": "Mr Men & Little Miss"
+   },
+   {
+    "id": "polar-exploration",
+    "label": "Polar Exploration"
+   }
+  ]
+ }
+}
