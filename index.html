@@ -590,6 +590,16 @@ function tapCell(r, c) {
   selectEntry(ei, e.dir === "A" ? c - e.col : r - e.row);
 }
 function selectEntry(ei, off, quiet) {
+  // Leaving a word that still has gaps means the solver looked at it and moved
+  // on. Remember that, so the next-word rules can save it for later instead of
+  // marching them back to a clue they have already declined.
+  if (P && ei !== sel.e && P.entries[sel.e]) {
+    const st = puzzleState();
+    if (entryCells(P.entries[sel.e]).some(([r, c]) => !st.fill[r + "," + c])) {
+      st.passed = st.passed || [];
+      if (!st.passed.includes(sel.e)) { st.passed.push(sel.e); saveState(st); }
+    }
+  }
   if (ei !== sel.e) typedThisWord.clear();
   sel = { e: ei, i: off ?? 0 };
   const e = P.entries[ei];
@@ -626,24 +636,37 @@ function typeLetter(ch) {
   typedThisWord.add(key);
   st.checked = (st.checked || []).filter((k) => k !== key);
   saveState(st);
-  // Cursor: step to the immediately following cell, even when it already holds
-  // a letter — editing inside a filled word walks along it one cell at a time
-  // instead of jumping to the next gap. Only a keystroke that *finishes* a word
-  // (it was incomplete, now it isn't) hands over to the next-word rules, as does
-  // editing the last cell of an already-full word — there is nothing after it.
+  // Cursor rules, which differ by what the solver is doing:
+  //  - FILLING a word: skip over cells a crossing word already filled. Those
+  //    letters are taken as wanted, so they need no re-typing.
+  //  - EDITING an already-complete word: step exactly one cell, so a correction
+  //    walks along it rather than leaping to some far-off gap.
+  // A keystroke that *finishes* a word hands over to the next-word rules, as
+  // does editing the last cell of a full word — nothing follows it.
   const justFinished = !wasComplete && cells.every(([r, c]) => st.fill[r + "," + c]);
   const atEnd = sel.i >= cells.length - 1;
   if (justFinished || (wasComplete && atEnd)) {
     if (!checkComplete()) {
-      const next = bestNextEntry(sel.e);
+      // Skipping filled cells means the grid can fill up while a letter placed
+      // by a crossing word is wrong. Then no word has a gap and the ladder
+      // returns nothing, which used to strand the cursor. Send it to a word
+      // already flagged red instead — that reveals nothing the solver cannot
+      // see on the grid.
+      let next = bestNextEntry(sel.e);
+      if (next === null) next = firstBadEntry(sel.e);
       if (next !== null) { selectEntry(next, firstGap(next)); logWordProgress(); return; }
     }
-  } else if (!atEnd) {
-    sel.i++;
+  } else if (wasComplete) {
+    if (!atEnd) sel.i++;
   } else {
-    // last cell typed but gaps remain behind: wrap back to the first of them
-    const g = cells.findIndex(([r, c]) => !st.fill[r + "," + c]);
-    if (g >= 0) sel.i = g;
+    let ni = sel.i + 1;
+    while (ni < cells.length && st.fill[cells[ni].join(",")]) ni++;
+    if (ni < cells.length) sel.i = ni;
+    else {
+      // ran off the end with gaps behind: wrap to the first one still empty
+      const g = cells.findIndex(([r, c]) => !st.fill[r + "," + c]);
+      if (g >= 0) sel.i = g;
+    }
   }
   updateHighlights();
   checkComplete();
@@ -668,7 +691,11 @@ function logWordProgress() {
   if (changed) saveState(st);
 }
 
-// After finishing a word, go where a human would:
+// After finishing a word, go where a human would. Words the solver has already
+// visited and left unfinished are held back to the very end — having declined a
+// clue once, they should not be dropped straight back on it. So the whole
+// ladder runs first over untouched words, and only then over the passed-over
+// ones. Within each pass:
 // 1. an unfinished word that CROSSES it — preferring one that just gained a
 //    letter from this word, then fewest missing letters, then most letters
 //    present, then lowest number;
@@ -677,11 +704,16 @@ function logWordProgress() {
 // 3. else (no unfinished word has any letters) the next numerical word with
 //    a gap. Full-but-wrong words count as "no gap" and are skipped throughout.
 function bestNextEntry(fromEi) {
+  const passed = new Set(puzzleState().passed || []);
+  const fresh = pickNext(fromEi, (oi) => !passed.has(oi));
+  return fresh !== null ? fresh : pickNext(fromEi, () => true);
+}
+function pickNext(fromEi, allow) {
   const st = puzzleState();
   const myCells = new Set(entryCells(P.entries[fromEi]).map((c) => c.join(",")));
   let best = null, bestAny = null;
   P.entries.forEach((o, oi) => {
-    if (oi === fromEi) return;
+    if (oi === fromEi || !allow(oi)) return;
     const oc = entryCells(o).map((c) => c.join(","));
     const gaps = oc.filter((k) => !st.fill[k]).length;
     if (!gaps) return;
@@ -707,7 +739,16 @@ function bestNextEntry(fromEi) {
   });
   if (best) return best.oi;
   if (bestAny) return bestAny.oi;
-  return nextEntryWithGap();
+  return nextEntryWithGap(allow);
+}
+// First word containing a cell the last check marked wrong (already shown red).
+function firstBadEntry(fromEi) {
+  if (!badWordKeys.size) return null;
+  for (let d = 1; d <= P.entries.length; d++) {
+    const ei = (fromEi + d) % P.entries.length;
+    if (entryCells(P.entries[ei]).some(([r, c]) => badWordKeys.has(r + "," + c))) return ei;
+  }
+  return null;
 }
 function firstGap(ei) {
   const st = puzzleState();
@@ -715,11 +756,11 @@ function firstGap(ei) {
   for (let k = 0; k < cells.length; k++) if (!st.fill[cells[k].join(",")]) return k;
   return 0;
 }
-function nextEntryWithGap() {
+function nextEntryWithGap(allow = () => true) {
   const st = puzzleState();
   for (let d = 1; d <= P.entries.length; d++) {
     const ei = (sel.e + d) % P.entries.length;
-    if (entryCells(P.entries[ei]).some(([r, c]) => !st.fill[r + "," + c])) return ei;
+    if (allow(ei) && entryCells(P.entries[ei]).some(([r, c]) => !st.fill[r + "," + c])) return ei;
   }
   return null;
 }
@@ -749,8 +790,11 @@ function checkComplete() {
     if (!st.done) {
       st.done = true; saveState(st);
       stopTimer();
-      submitResult(st);
-      showDone(true);
+      // The board must not be fetched until our own row is actually in: this
+      // was fired without awaiting, so the modal opened mid-INSERT and the
+      // solver was missing from their own leaderboard until they closed and
+      // reopened it.
+      (async () => { await submitResult(st); await showDone(true); })();
     }
     return true;
   }
@@ -890,6 +934,13 @@ async function showDone(justFinished, lbOnly) {
   // "me" is matched on submitted fields (player_id is never sent back to clients)
   const isMe = (r) => st.done && r.player_name === player().name &&
     r.seconds === st.secs && !!r.assisted === !!st.assisted;
+  // Belt and braces for the same bug: if we have finished but our row is not in
+  // the fetched board (write still settling, or it failed and will retry), show
+  // it locally rather than presenting a board the solver is absent from.
+  if (st.done && ONLINE && !rows.some(isMe)) {
+    rows = rows.concat([{ player_name: player().name, combo_key: PZ ? PZ.combo_key : "",
+                          seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }]);
+  }
 
   // TRIV score v2 (weights hidden from UI):
   //   40% today's time vs the puzzle's par (fair across combos)
