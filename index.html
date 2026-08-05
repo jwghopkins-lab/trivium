@@ -12,6 +12,8 @@
     --wrong: #C0392B; --wrong-soft: #F7DAD5; --good: #1E7B4F;
     --t-a: #C64B33; --t-b: #B3268C; --t-c: #8A7B2B;
     --key: #E4E8E2; --key-ink: #1C2227;
+    --key-face: #FFFFFF; --key-alt: #D3D8D1; --key-shadow: 0 1px 1px rgba(20,25,30,.10);
+    --kb-plane: #D9DDD8;
     --shadow: 0 1px 3px rgba(20,25,30,.12);
   }
   @media (prefers-color-scheme: dark) {
@@ -22,6 +24,8 @@
       --wrong: #E06A5B; --wrong-soft: #4A2622; --good: #4BBF87;
       --t-a: #E07A5F; --t-b: #DD62BC; --t-c: #C4B454;
       --key: #2A323A; --key-ink: #E7EBEE;
+      --key-face: #333B43; --key-alt: #232A31; --key-shadow: none;
+      --kb-plane: #10151A;
       --shadow: 0 1px 3px rgba(0,0,0,.4);
     }
   }
@@ -50,7 +54,19 @@
   .card2 p { font-size: .84rem; color: var(--ink-soft); line-height: 1.45; margin-bottom: 8px; }
   input[type=text] { width: 100%; padding: 11px 12px; font-size: 1rem; border-radius: 9px;
                      border: 1px solid var(--line); background: var(--cell); color: var(--ink); }
-  .tiergroup { margin: 12px 0 4px; }
+  .tiergroup { margin: 12px 0 4px; position: relative; }
+  /* Shelves open one at a time. The veil is a pseudo-element, never an inserted
+     node, so the DOM keeps exactly three shelves and twelve buttons for tests
+     and for screen readers. grayscale() is what makes it read as grey rather
+     than merely faint. */
+  .tiergroup.veiled { pointer-events: none; filter: grayscale(1); }
+  .tiergroup.veiled::after {
+    content: attr(data-veil); position: absolute; inset: -4px -6px; border-radius: 12px;
+    background: color-mix(in srgb, var(--paper) 68%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; color: var(--ink-soft); z-index: 2; text-align: center; }
+  @keyframes shelfin { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
+  .tiergroup.justrevealed { animation: shelfin .28s ease both; }
   .tierlabel { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
                color: var(--ink-soft); margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
   .tierlabel .dot { width: 9px; height: 9px; border-radius: 50%; }
@@ -97,14 +113,29 @@
                 font-weight: 600; margin-right: 6px; }
   .nav { border: none; background: var(--key); color: var(--key-ink); border-radius: 8px;
          width: 34px; height: 38px; font-size: 1rem; cursor: pointer; flex: none; }
-  #kb { display: flex; flex-direction: column; gap: 5px; margin-top: auto; }
-  .krow { display: flex; gap: 4px; justify-content: center; }
-  .key { flex: 1; max-width: 42px; height: 46px; border: none; border-radius: 6px;
-         background: var(--key); color: var(--key-ink); font-size: 1.02rem; font-weight: 600;
-         cursor: pointer; box-shadow: var(--shadow); }
+  /* Gboard geometry: ONE key unit shared by all three rows. Flex sizing gave
+     each row its own width (33/37/42px), which is what made the old keyboard
+     look homemade. With a fixed unit the leftover space becomes the half-key
+     inset on row 2 and the wide action key on row 3, exactly as Android does.
+     Depends on .krow having no horizontal padding — the % resolves against it. */
+  #kb { display: flex; flex-direction: column; gap: var(--kgap);
+        margin-inline: -6px; padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
+        background: var(--kb-plane); border-radius: 12px;
+        --kgap: 7px; --kw: calc((100% - 9 * var(--kgap)) / 10); }
+  .krow { display: flex; gap: var(--kgap); justify-content: center; }
+  .key { width: var(--kw); flex: none; height: 42px; border: none; border-radius: 7px;
+         background: var(--key-face); color: var(--key-ink); font-size: 1.1rem;
+         font-weight: 600; line-height: 1; cursor: pointer; box-shadow: var(--key-shadow);
+         display: flex; align-items: center; justify-content: center; user-select: none; }
   .key:active { background: var(--accent); color: #fff; }
-  .key.wide { max-width: 64px; font-size: .8rem; }
-  .toolrow { display: flex; gap: 6px; justify-content: center; padding: 6px 0 2px; flex-wrap: wrap; }
+  .key.wide { width: calc(var(--kw) * 1.5 + var(--kgap) * .5); font-size: 1.1rem;
+              background: var(--key-alt); }
+  /* mirrors the wide key so Z-M stay optically aligned under the row above */
+  .krow[data-extra]::before { content: ""; flex: none;
+                              width: calc(var(--kw) * 1.5 + var(--kgap) * .5); }
+  .toolrow { display: flex; gap: 6px; justify-content: center; padding: 6px 0 4px;
+             flex-wrap: wrap; margin-top: auto; }
+  .tool:disabled { opacity: .4; cursor: default; }
   .tool { border: 1px solid var(--line); background: var(--panel); color: var(--ink-soft);
           font-size: .74rem; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
   .tool:focus-visible, .key:focus-visible, .nav:focus-visible, .topicbtn:focus-visible, .btn:focus-visible {
@@ -151,15 +182,15 @@
   #kbhint.show { display: block; }
   @keyframes hintpulse { 0%,100% { transform: translateX(-50%) translateY(0); }
                          50% { transform: translateX(-50%) translateY(-6px); } }
-  @media (prefers-reduced-motion: reduce) { #kbhint { animation: none; } * { transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { #kbhint, .tiergroup { animation: none !important; } * { transition: none !important; } }
   #fbbtn { position: fixed; left: 10px; bottom: 10px; z-index: 18; width: 38px; height: 38px;
            border-radius: 50%; border: 1px solid var(--line); background: var(--panel);
            font-size: 1.05rem; cursor: pointer; opacity: .75; }
   /* in-game the keyboard owns the bottom edge: feedback moves into the toolrow */
   body:has(#s-game.on) #fbbtn { display: none; }
-  #fbpanel { position: fixed; inset: 0; background: rgba(10,14,18,.55); display: none;
+  #fbpanel, #hintpanel { position: fixed; inset: 0; background: rgba(10,14,18,.55); display: none;
              align-items: center; justify-content: center; padding: 18px; z-index: 26; }
-  #fbpanel.show { display: flex; }
+  #fbpanel.show, #hintpanel.show { display: flex; }
   .fbcard { background: var(--panel); color: var(--ink); border-radius: 16px;
             padding: 18px; width: 100%; max-width: 380px; }
   .fbcard b { font-size: .95rem; }
@@ -199,9 +230,9 @@
   <div id="offline-banner" class="banner" style="display:none">
     Leaderboard offline — no backend configured. You can still play; see SETUP.md.</div>
   <div class="card2">
-    <h2>Today's topics</h2>
-    <p>Pick one from each shelf. Your three topics make today's puzzle — and you're ranked
-       against <b>everyone playing today</b>, whatever they picked. Choice locks when you
+    <h2>Pick a topic from each shelf</h2>
+    <p>Your three topics make today's puzzle — and you're ranked against
+       <b>everyone playing today</b>, whatever they picked. Choice locks when you
        start solving.</p>
     <div id="tiers"></div>
     <div style="height:12px"></div>
@@ -225,12 +256,12 @@
     <div id="cluetext"></div>
     <button class="nav" id="nextclue" aria-label="Next clue">›</button>
   </div>
+  <div class="toolrow">
+    <button class="tool" id="hintbtn">Hint +0:20</button>
+    <button class="tool" id="lbbtn">Leaderboard</button>
+    <button class="tool" id="fbtool" title="Send feedback">💬</button>
+  </div>
   <div id="kb">
-    <div class="toolrow">
-      <button class="tool" id="hintbtn">Hint +0:20</button>
-      <button class="tool" id="lbbtn">Leaderboard</button>
-      <button class="tool" id="fbtool" title="Send feedback">💬</button>
-    </div>
     <div class="krow" data-keys="QWERTYUIOP"></div>
     <div class="krow" data-keys="ASDFGHJKL"></div>
     <div class="krow" data-keys="ZXCVBNM" data-extra="1"></div>
@@ -248,6 +279,16 @@
     <div class="fbrow">
       <button class="btn ghost" id="fbcancel">Cancel</button>
       <button class="btn primary" id="fbsend">Send</button>
+    </div>
+  </div>
+</div>
+<div id="hintpanel">
+  <div class="fbcard">
+    <b>Use a hint?</b>
+    <p class="note" id="hinttext"></p>
+    <div class="fbrow">
+      <button class="btn ghost" id="hintno">No</button>
+      <button class="btn primary" id="hintyes">Yes, use a hint</button>
     </div>
   </div>
 </div>
@@ -401,6 +442,7 @@ $("namebtn").onclick = () => {
 /* picker */
 let MENU = null;
 let picks = {};
+let shelvesOpen = 0;   // how many shelves were open last render, for the reveal animation
 async function enterPicker() {
   show("s-pick");
   $("hello").textContent = player().name;
@@ -418,8 +460,20 @@ async function enterPicker() {
   picks = LS.get("picks." + DAY, {});
   const t = $("tiers");
   t.innerHTML = "";
+  // A shelf is open once every shelf above it has a pick. `picks[tier]` keeps
+  // an existing choice visible for players who picked before this shipped, and
+  // a started puzzle opens everything (it is locked anyway). Derived, never
+  // stored, so a reload lands in exactly the right state.
+  const started = !!LS.get("state." + DAY, null);
+  const isOpen = (tier) => tier === "broad" || started || !!picks[tier] ||
+    TIERS.slice(0, TIERS.indexOf(tier)).every((t) => picks[t]);
+  const openNow = TIERS.filter(isOpen).length;
   for (const tier of TIERS) {
-    const g = document.createElement("div"); g.className = "tiergroup";
+    const open = isOpen(tier);
+    const g = document.createElement("div");
+    g.className = "tiergroup" + (open ? "" : " veiled") +
+      (open && openNow > shelvesOpen ? " justrevealed" : "");
+    if (!open) g.dataset.veil = "Pick from the shelf above first";
     g.innerHTML = `<div class="tierlabel"><span class="dot" style="background:var(--t-${TIER_SLOT[tier]})"></span>
                    ${SHELF_LABEL[tier]}</div>`;
     const grid = document.createElement("div"); grid.className = "topicgrid";
@@ -427,7 +481,9 @@ async function enterPicker() {
       const b = document.createElement("button");
       b.className = "topicbtn" + (picks[tier] === topic.id ? " sel" : "");
       b.textContent = topic.label;
+      b.disabled = !open;
       b.onclick = () => {
+        if (!open) return;
         if (LS.get("state." + DAY, null)) { toast("Today's choice is locked — you already started"); return; }
         picks[tier] = topic.id;
         LS.set("picks." + DAY, picks);
@@ -438,6 +494,7 @@ async function enterPicker() {
     g.appendChild(grid); t.appendChild(g);
   }
   $("playbtn").disabled = !(picks.broad && picks.mid && picks.niche);
+  shelvesOpen = openNow;
 }
 function enterPickerRefresh() { enterPicker(); }
 $("playbtn").onclick = () => loadPuzzle();
@@ -852,11 +909,24 @@ function updateHintBtn(st) {
   $("hintbtn").textContent = left > 0
     ? `Hint +0:20${(st.hints || 0) ? ` (${left} left)` : ""}`
     : "No hints left";
+  $("hintbtn").disabled = left <= 0;
 }
+// Hints ask first: an accidental tap used to cost 20 seconds silently, and the
+// button is right beside the keyboard.
 $("hintbtn").onclick = () => {
   const st = puzzleState();
   if (st.done) return;
-  if ((st.hints || 0) >= MAX_HINTS) { toast(`No hints left (max ${MAX_HINTS})`); return; }
+  const left = MAX_HINTS - (st.hints || 0);
+  if (left <= 0) { toast(`No hints left (max ${MAX_HINTS})`); return; }
+  $("hinttext").textContent =
+    `This fills in one letter and adds 20 seconds to your time. ` +
+    (left === 1 ? "This is your last hint." : `You have ${left} of ${MAX_HINTS} left.`);
+  $("hintpanel").classList.add("show");
+};
+$("hintno").onclick = () => $("hintpanel").classList.remove("show");
+$("hintyes").onclick = () => { $("hintpanel").classList.remove("show"); applyHint(); };
+function applyHint() {
+  const st = puzzleState();
   badWordKeys.clear();
   const cells = entryCells(P.entries[sel.e]);
   let target = null, ti = sel.i;
@@ -884,11 +954,12 @@ $("hintbtn").onclick = () => {
   updateHighlights();
   checkComplete();
   logWordProgress();
-};
+}
 $("lbbtn").onclick = () => showDone(false, true);
 // Check/Reveal/Topics removed: they gated on confirm(), which the artifact's
-// sandboxed iframe blocks, so they were dead. Hint (+1:00, ranked) is the only
-// assist now; wrong-word red feedback on a full grid still fires automatically.
+// sandboxed iframe blocks, so they were dead. Hint (+0:20 on your time, and
+// nothing else) is the only assist; wrong-word red feedback still fires
+// automatically on a full grid.
 
 /* ---- results ---- */
 async function submitResult(st) {
@@ -942,11 +1013,13 @@ async function showDone(justFinished, lbOnly) {
                           seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }]);
   }
 
-  // TRIV score v2 (weights hidden from UI):
-  //   40% today's time vs the puzzle's par (fair across combos)
-  //   25% streak, square-rooted and capped at 7 (newcomers stay in reach)
-  //   20% 7-day rolling average (improvement shows quickly)
-  //   15% clean-solve bonus (fewer hints, higher marks)
+  // TRIV score v3 — three components, explained on the board itself:
+  //   47% today's time vs the puzzle's par (fair across combos)
+  //   29% streak, square-rooted and capped at 7 (newcomers stay in reach)
+  //   24% 7-day rolling average (improvement shows quickly)
+  // A hint costs 20 seconds of time and nothing else. v2 also docked a
+  // "clean solve" component, so a hint was charged twice over in two different
+  // currencies — one cost, one currency is easier to reason about.
   const parVals = Object.values(pars).sort((a, b) => a - b);
   const parDefault = parVals.length ? parVals[Math.floor(parVals.length / 2)] : 300;
   const parOf = (ck) => Number(pars[ck]) || parDefault;
@@ -962,11 +1035,13 @@ async function showDone(justFinished, lbOnly) {
     const bestRatio = Math.min(...rankedRows.map((r) => r._ratio));
     const bestA = Math.min(...rankedRows.map((r) => r._avg || 1));
     rankedRows.forEach((r) => {
-      r._score = Math.round(
+      // the /0.85 restores a 100-point top mark while keeping the surviving
+      // three in exactly their old 8:5:4 proportion
+      r._score = Math.round((
         40 * (bestRatio / r._ratio) +
         25 * (Math.sqrt(Math.min(r._streak, 7)) / Math.sqrt(7)) +
-        20 * (bestA / (r._avg || 1)) +
-        15 * ((MAX_HINTS - Math.min(Number(r.hints) || 0, MAX_HINTS)) / MAX_HINTS));
+        20 * (bestA / (r._avg || 1))
+      ) / 0.85);
     });
     rankedRows.sort((a, b) => (b._score - a._score) || (a.seconds - b.seconds));
     rankedRows.forEach((r, i) => {
@@ -1005,9 +1080,12 @@ async function showDone(justFinished, lbOnly) {
        ${st.done ? `<button class="btn primary" id="sharebtn">Copy result</button>` : ""}
        <button class="btn ghost" id="closebtn">Close</button>
      </div>
-     <div class="note">Ranked by TRIV score — your streak, today's time and your long-run
-     average all count. Combos differ in difficulty; each row shows the player's topics.
-     Times are self-reported by the app (test build).</div>`;
+     <div class="note"><b>How the score works.</b> Three things count: how fast you were
+     today compared with a typical time for your puzzle (the biggest part), your daily
+     streak, and your average over the last 7 days. A hint adds 20 seconds to your time —
+     that is its only cost. Topic combos differ in difficulty, so your time is judged
+     against par for <i>your</i> puzzle, not against everyone else's clock. Each row shows
+     the player's topics. Times are self-reported by the app (test build).</div>`;
   $("modal").classList.add("show");
   $("closebtn").onclick = () => $("modal").classList.remove("show");
   const sb = $("sharebtn");
@@ -1055,7 +1133,8 @@ document.querySelectorAll(".krow").forEach((row) => {
 });
 document.addEventListener("keydown", (ev) => {
   if (!$("s-game").classList.contains("on") || $("modal").classList.contains("show") ||
-      $("fbpanel").classList.contains("show")) return;
+      $("fbpanel").classList.contains("show") ||
+      $("hintpanel").classList.contains("show")) return;
   if (/^[a-zA-Z]$/.test(ev.key)) typeLetter(ev.key.toUpperCase());
   else if (ev.key === "Backspace") { ev.preventDefault(); backspace(); }
   else if (["ArrowRight", "ArrowDown", "Tab"].includes(ev.key)) {
