@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-06",
+ "tiers": {
+  "broad": [
+   {
+    "id": "pets",
+    "label": "Pets & Petcare"
+   },
+   {
+    "id": "school-days",
+    "label": "School Days"
+   },
+   {
+    "id": "tools-diy",
+    "label": "Tools & DIY"
+   }
+  ],
+  "mid": [
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "cycling",
+    "label": "Cycling"
+   },
+   {
+    "id": "magic-illusion",
+    "label": "Magic & Illusion"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ballet-dance",
+    "label": "Ballet & Dance"
+   },
+   {
+    "id": "sherlock-holmes",
+    "label": "Sherlock Holmes"
+   },
+   {
+    "id": "wild-west",
+    "label": "The Wild West"
+   }
+  ]
+ }
+}
