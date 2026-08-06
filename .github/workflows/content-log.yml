@@ -1,0 +1,56 @@
+name: content log
+
+# Push what was published into menu_log / puzzle_log so content can be joined
+# against play data. Runs after a release changes the puzzle set, and on demand.
+#
+# This repo only ever contains released days (deploy_pages.py gates the copy),
+# so the "never log an unreleased answer" rule is structural here rather than a
+# check that could be forgotten.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "puzzles/**"
+      - "menu/**"
+
+concurrency:
+  group: content-log
+  cancel-in-progress: false
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Insert rows
+        run: python3 tools/export_log.py --post
+
+      - name: Re-run must be idempotent
+        run: |
+          # Every row already exists; on_conflict + ignore-duplicates must make
+          # this a no-op rather than a 409. A release that re-publishes an
+          # unchanged day would otherwise fail the workflow.
+          python3 tools/export_log.py --post
+
+      - name: Anon key must not be able to read the tables
+        run: |
+          # The whole safety argument for logging content is that the public
+          # anon key can append but never read. If that ever regresses, a
+          # future day's answers become fetchable the moment they are logged.
+          SUPA=$(grep -o 'SUPABASE_URL: "[^"]*"' config.js | cut -d'"' -f2)
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: "[^"]*"' config.js | cut -d'"' -f2)
+          fail=0
+          for t in menu_log puzzle_log; do
+            body=$(curl -sS "$SUPA/rest/v1/$t?select=*&limit=5" \
+                     -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+            echo "$t -> $body"
+            # a readable table returns a JSON array with objects in it
+            if echo "$body" | grep -q '"day"'; then
+              echo "::error::$t is READABLE with the public anon key"
+              fail=1
+            fi
+          done
+          exit $fail
