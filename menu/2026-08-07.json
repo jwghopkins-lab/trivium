@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-07",
+ "tiers": {
+  "broad": [
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "parties-celebrations",
+    "label": "Parties & Celebrations"
+   },
+   {
+    "id": "the-supermarket",
+    "label": "At the Supermarket"
+   }
+  ],
+  "mid": [
+   {
+    "id": "mountains-climbing",
+    "label": "Mountains & Climbing"
+   },
+   {
+    "id": "pottery-ceramics",
+    "label": "Pottery & Ceramics"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   }
+  ],
+  "niche": [
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   },
+   {
+    "id": "the-tudors",
+    "label": "The Tudors"
+   }
+  ]
+ }
+}
