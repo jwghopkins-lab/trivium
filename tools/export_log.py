@@ -89,29 +89,29 @@ def write_csv(path, rows, cols):
         w.writerows(rows)
 
 
-def post(table, rows, url, key):
-    """Insert, ignoring rows already logged. PostgREST needs the resolution
-    header AND an on_conflict target, or a re-run of a published day 409s."""
-    sent = 0
-    for i in range(0, len(rows), 500):
-        chunk = rows[i:i + 500]
-        conflict = "day,topic_id" if table == "menu_log" else "day,combo_key,answer"
+def post(menu_rows, puzzle_rows, url, key):
+    """One idempotent write path: the content_log_upsert RPC (security definer,
+    ON CONFLICT DO NOTHING). Direct table POSTs are gone for a reason -- the
+    ignore-duplicates upsert makes Postgres read the conflict index, which
+    needs SELECT, the one grant these tables must never give anon (42501)."""
+    def call(menu, puzzles):
         req = urllib.request.Request(
-            f"{url}/rest/v1/{table}?on_conflict={conflict}",
-            data=json.dumps(chunk).encode(), method="POST",
+            f"{url}/rest/v1/rpc/content_log_upsert",
+            data=json.dumps({"menu": menu, "puzzles": puzzles}).encode(),
+            method="POST",
             headers={"apikey": key, "Authorization": f"Bearer {key}",
-                     "Content-Type": "application/json",
-                     "Prefer": "resolution=ignore-duplicates,return=minimal"})
+                     "Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:
-                if r.status >= 300:
-                    raise SystemExit(f"{table}: HTTP {r.status}")
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
-            # the status alone is undiagnosable (PostgREST reuses 401 for
-            # several distinct causes); the body names the actual error
-            raise SystemExit(f"{table}: HTTP {e.code}: {e.read().decode()[:500]}")
-        sent += len(chunk)
-    return sent
+            # the status alone is undiagnosable; the body names the error
+            raise SystemExit(
+                f"content_log_upsert: HTTP {e.code}: {e.read().decode()[:500]}")
+    results = [call(menu_rows, puzzle_rows[:1000])]
+    for i in range(1000, len(puzzle_rows), 1000):
+        results.append(call([], puzzle_rows[i:i + 1000]))
+    return results
 
 
 def main():
@@ -134,8 +134,8 @@ def main():
         key = re.search(r'SUPABASE_ANON_KEY:\s*"([^"]+)"', cfg).group(1)
         if not url or "YOUR" in url:
             raise SystemExit("config.js has no real Supabase URL")
-        print(f"menu_log:   {post('menu_log', menu_rows, url, key)} rows sent")
-        print(f"puzzle_log: {post('puzzle_log', puzzle_rows, url, key)} rows sent")
+        for line in post(menu_rows, puzzle_rows, url, key):
+            print(f"  {line}")
 
 
 if __name__ == "__main__":

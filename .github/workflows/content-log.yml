@@ -54,3 +54,20 @@ jobs:
             fi
           done
           exit $fail
+
+      - name: Direct table writes must be denied (RPC is the only path)
+        run: |
+          # Writes go through content_log_upsert (security definer) so the
+          # tables never need an anon INSERT grant. If a direct POST ever
+          # succeeds again, the single-write-path property has regressed.
+          SUPA=$(grep -o 'SUPABASE_URL: "[^"]*"' config.js | cut -d'"' -f2)
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: "[^"]*"' config.js | cut -d'"' -f2)
+          code=$(curl -s -o /tmp/w -w "%{http_code}" -X POST "$SUPA/rest/v1/menu_log" \
+                 -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+                 -H "Content-Type: application/json" \
+                 -d '[{"day":"2099-01-01","tier":"broad","topic_id":"probe","topic_label":"Probe"}]')
+          echo "direct insert -> HTTP $code: $(cat /tmp/w)"
+          if [ "$code" -lt 400 ]; then
+            echo "::error::direct table insert was ACCEPTED - single write path regressed"
+            exit 1
+          fi
