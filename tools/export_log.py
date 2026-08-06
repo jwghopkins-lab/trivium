@@ -102,9 +102,14 @@ def post(table, rows, url, key):
             headers={"apikey": key, "Authorization": f"Bearer {key}",
                      "Content-Type": "application/json",
                      "Prefer": "resolution=ignore-duplicates,return=minimal"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            if r.status >= 300:
-                raise SystemExit(f"{table}: HTTP {r.status}")
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                if r.status >= 300:
+                    raise SystemExit(f"{table}: HTTP {r.status}")
+        except urllib.error.HTTPError as e:
+            # the status alone is undiagnosable (PostgREST reuses 401 for
+            # several distinct causes); the body names the actual error
+            raise SystemExit(f"{table}: HTTP {e.code}: {e.read().decode()[:500]}")
         sent += len(chunk)
     return sent
 
