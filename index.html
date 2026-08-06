@@ -986,16 +986,14 @@ async function showDone(justFinished, lbOnly) {
   const st = puzzleState();
   if (st.done && !st.submitted) await submitResult(st);
   const ranked = st.done && !st.assisted;
-  let rows = [], stats = {}, yday = {}, pars = {}, boardNote = "";
+  let rows = [], stats = {}, yday = {}, boardNote = "";
   if (ONLINE) {
     try {
-      const [b, hist, p] = await Promise.all([apiBoard(DAY), apiHistory(),
-        loadJson(`pars/${DAY}.json`).catch(() => ({}))]);
-      rows = b; stats = computeStats(hist); yday = ydayRanks(hist); pars = p;
+      const [b, hist] = await Promise.all([apiBoard(DAY), apiHistory()]);
+      rows = b; stats = computeStats(hist); yday = ydayRanks(hist);
     } catch (e) { boardNote = "Leaderboard unavailable right now."; }
   } else {
     boardNote = "Offline demo: no shared leaderboard configured.";
-    try { pars = await loadJson(`pars/${DAY}.json`); } catch (e) {}
     if (st.done) {
       rows = [{ player_name: player().name, combo_key: PZ ? PZ.combo_key : "",
                 seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }];
@@ -1013,32 +1011,33 @@ async function showDone(justFinished, lbOnly) {
                           seconds: st.secs, hints: st.hints || 0, assisted: !!st.assisted }]);
   }
 
-  // TRIV score v3 — three components, explained on the board itself:
-  //   47% today's time vs the puzzle's par (fair across combos)
+  // TRIV score v4 — three components, explained on the board itself:
+  //   47% today's raw time against the fastest time on the board
   //   29% streak, square-rooted and capped at 7 (newcomers stay in reach)
   //   24% 7-day rolling average (improvement shows quickly)
   // A hint costs 20 seconds of time and nothing else. v2 also docked a
   // "clean solve" component, so a hint was charged twice over in two different
   // currencies — one cost, one currency is easier to reason about.
-  const parVals = Object.values(pars).sort((a, b) => a - b);
-  const parDefault = parVals.length ? parVals[Math.floor(parVals.length / 2)] : 300;
-  const parOf = (ck) => Number(pars[ck]) || parDefault;
+  // v3 divided today's time by the puzzle's par so combos of different
+  // difficulty were comparable. v4 drops par deliberately: picking a combo you
+  // know well IS the advantage, and reading your own clock beats reading a
+  // ratio you can't see. Nothing else here depends on pars/<day>.json.
   const rankedRows = rows.filter((r) => !r.assisted);
   const assistedRows = rows.filter((r) => r.assisted).sort((a, b) => a.seconds - b.seconds);
   rows.forEach((r) => {
     const s = stats[r.player_name] || {};
     r._streak = Math.max(1, s.streak || 1);
     r._avg = s.avg7 != null ? s.avg7 : Number(r.seconds) || 0;
-    r._ratio = (Number(r.seconds) || 1) / parOf(r.combo_key);
+    r._secs = Number(r.seconds) || 1;
   });
   if (rankedRows.length) {
-    const bestRatio = Math.min(...rankedRows.map((r) => r._ratio));
+    const bestSecs = Math.min(...rankedRows.map((r) => r._secs));
     const bestA = Math.min(...rankedRows.map((r) => r._avg || 1));
     rankedRows.forEach((r) => {
       // the /0.85 restores a 100-point top mark while keeping the surviving
       // three in exactly their old 8:5:4 proportion
       r._score = Math.round((
-        40 * (bestRatio / r._ratio) +
+        40 * (bestSecs / r._secs) +
         25 * (Math.sqrt(Math.min(r._streak, 7)) / Math.sqrt(7)) +
         20 * (bestA / (r._avg || 1))
       ) / 0.85);
@@ -1080,12 +1079,13 @@ async function showDone(justFinished, lbOnly) {
        ${st.done ? `<button class="btn primary" id="sharebtn">Copy result</button>` : ""}
        <button class="btn ghost" id="closebtn">Close</button>
      </div>
-     <div class="note"><b>How the score works.</b> Three things count: how fast you were
-     today compared with a typical time for your puzzle (the biggest part), your daily
-     streak, and your average over the last 7 days. A hint adds 20 seconds to your time —
-     that is its only cost. Topic combos differ in difficulty, so your time is judged
-     against par for <i>your</i> puzzle, not against everyone else's clock. Each row shows
-     the player's topics. Times are self-reported by the app (test build).</div>`;
+     <div class="note"><b>How the score works.</b> Three things count: today's time
+     (the biggest part), your daily streak, and your average over the last 7 days.
+     Your time is just your time on the clock — the fastest solver today sets the mark
+     and everyone is measured against that. Puzzles aren't difficulty-adjusted, so
+     picking three topics you actually know is a real advantage. Choose well. A hint
+     adds 20 seconds to your time and costs nothing else. Each row shows the player's
+     topics. Times are self-reported by the app (test build).</div>`;
   $("modal").classList.add("show");
   $("closebtn").onclick = () => $("modal").classList.remove("show");
   const sb = $("sharebtn");
