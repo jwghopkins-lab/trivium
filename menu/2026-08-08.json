@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-08",
+ "tiers": {
+  "broad": [
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "things-that-beep",
+    "label": "Things That Beep"
+   }
+  ],
+  "mid": [
+   {
+    "id": "birds-birdwatching",
+    "label": "Birds & Birdwatching"
+   },
+   {
+    "id": "ocean-marine",
+    "label": "Ocean & Marine Life"
+   },
+   {
+    "id": "the-funfair",
+    "label": "At the Funfair"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-egypt",
+    "label": "Ancient Egypt"
+   },
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   }
+  ]
+ }
+}
