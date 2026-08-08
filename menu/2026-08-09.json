@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-09",
+ "tiers": {
+  "broad": [
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "cars-driving",
+    "label": "Cars & Driving"
+   },
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bees-beekeeping",
+    "label": "Bees & Beekeeping"
+   },
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "wine-vineyards",
+    "label": "Wine & Vineyards"
+   }
+  ],
+  "niche": [
+   {
+    "id": "agatha-christie",
+    "label": "Agatha Christie"
+   },
+   {
+    "id": "aztecs-incas",
+    "label": "Aztecs & Incas"
+   },
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   }
+  ]
+ }
+}
