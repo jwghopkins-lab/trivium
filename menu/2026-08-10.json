@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-10",
+ "tiers": {
+  "broad": [
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "money-banking",
+    "label": "Money & Banking"
+   },
+   {
+    "id": "time-clocks",
+    "label": "Time & Clocks"
+   }
+  ],
+  "mid": [
+   {
+    "id": "chocolate-sweets",
+    "label": "Chocolate & Sweets"
+   },
+   {
+    "id": "sewing-knitting",
+    "label": "Sewing & Knitting"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   }
+  ],
+  "niche": [
+   {
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   },
+   {
+    "id": "king-arthur",
+    "label": "King Arthur & Camelot"
+   }
+  ]
+ }
+}
