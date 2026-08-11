@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-12",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-seaside",
+    "label": "At the Seaside"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   },
+   {
+    "id": "transport-travel",
+    "label": "Getting Around"
+   }
+  ],
+  "mid": [
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   },
+   {
+    "id": "photography",
+    "label": "Photography"
+   }
+  ],
+  "niche": [
+   {
+    "id": "chess",
+    "label": "Chess"
+   },
+   {
+    "id": "norse-mythology",
+    "label": "Norse Mythology"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   }
+  ]
+ }
+}
