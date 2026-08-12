@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-13",
+ "tiers": {
+  "broad": [
+   {
+    "id": "animals-wildlife",
+    "label": "Animals & Wildlife"
+   },
+   {
+    "id": "capital-cities",
+    "label": "Capital Cities"
+   },
+   {
+    "id": "weather-seasons",
+    "label": "Weather & Seasons"
+   }
+  ],
+  "mid": [
+   {
+    "id": "camping-outdoors",
+    "label": "Camping & the Outdoors"
+   },
+   {
+    "id": "disney",
+    "label": "Disney"
+   },
+   {
+    "id": "world-landmarks",
+    "label": "World Landmarks & Travel"
+   }
+  ],
+  "niche": [
+   {
+    "id": "feudal-japan",
+    "label": "Samurai & Feudal Japan"
+   },
+   {
+    "id": "pirates",
+    "label": "Pirates & the High Seas"
+   },
+   {
+    "id": "polar-exploration",
+    "label": "Polar Exploration"
+   }
+  ]
+ }
+}
