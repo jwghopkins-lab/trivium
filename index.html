@@ -99,6 +99,18 @@
   .cell.word { background: var(--cell-word); }
   .cell.active { background: var(--cell-active); color: #fff; }
   .cell.active .num { color: rgba(255,255,255,.8); }
+  /* Why a persistent counter and not just a toast: a player finished a grid
+     bar one letter she had knocked off by accident, got no signal at all
+     (nothing is checked until every square is filled), and hunted for it with
+     the clock running. It reveals nothing — empty squares and red words are
+     both already on screen — it just says how many are left, and tapping it
+     goes there. */
+  #status { margin-top: 4px; font: inherit; font-size: 12px; line-height: 1;
+    padding: 4px 8px; border-radius: 999px; cursor: pointer;
+    background: var(--chip, rgba(255,255,255,.07)); color: var(--muted);
+    border: 1px solid rgba(128,128,128,.25); }
+  #status.wrong { color: var(--wrong); border-color: var(--wrong); }
+  #fbblurb { font-size: 14px; color: var(--muted); margin: -2px 0 2px; }
   .cell.badword { color: var(--wrong); background: var(--wrong-soft); }
   .cell.badword.active { color: #fff; background: var(--cell-active); }
   .cell.bad { color: var(--wrong); }
@@ -246,7 +258,8 @@
     <div><div class="wordmark">TRIVI<span>UM</span></div>
       <div class="tagline" id="gamedate"></div></div>
     <div class="spacer"></div>
-    <div style="text-align:right"><div id="timer">0:00</div></div>
+    <div style="text-align:right"><div id="timer">0:00</div>
+      <button type="button" id="status" hidden></button></div>
   </header>
   <div class="chips" id="chips"></div>
   <div id="gridwrap"><div id="grid"></div></div>
@@ -273,7 +286,8 @@
 <button id="fbbtn" title="Send feedback">💬</button>
 <div id="fbpanel">
   <div class="fbcard">
-    <b>Feedback</b>
+    <b id="fbtitle">Feedback</b>
+    <div id="fbblurb" hidden></div>
     <textarea id="fbtext" maxlength="500" rows="4"
       placeholder="Bugs, ideas, clue gripes — anything."></textarea>
     <div class="fbrow">
@@ -633,6 +647,7 @@ function firstUnsolvedEntry() {
 function tapCell(r, c) {
   const key = r + "," + c, info = P.cells[key];
   if (!info) return;
+  startTimer();   // tapping a cell changes the clue too — same free-read hole
   const dirs = Object.keys(info.entries);
   const curE = P.entries[sel.e];
   const onSel = entryCells(curE).some(([rr, cc]) => rr === r && cc === c);
@@ -678,7 +693,41 @@ function updateHighlights() {
     div.classList.toggle("badword", badWordKeys.has(k));
     div.querySelector(".ltr").textContent = st.fill[k] || "";
   });
+  updateStatus();
 }
+
+// Entries with an empty cell, then entries with a wrong letter. Both are
+// already visible on the grid; this only saves the search.
+function unfinishedEntries() {
+  const st = puzzleState();
+  const gaps = [], wrong = [];
+  P.entries.forEach((e, i) => {
+    const cells = entryCells(e).map(([r, c]) => r + "," + c);
+    if (cells.some((k) => !st.fill[k])) gaps.push(i);
+    else if (cells.some((k) => st.fill[k] !== P.cells[k].sol)) wrong.push(i);
+  });
+  return { gaps, wrong };
+}
+function updateStatus() {
+  const b = $("status");
+  if (!P) { b.hidden = true; return; }
+  const st = puzzleState();
+  if (st.done) { b.hidden = true; return; }
+  const empty = Object.keys(P.cells).filter((k) => !st.fill[k]).length;
+  const n = empty ? 0 : unfinishedEntries().wrong.length;
+  // full and nothing wrong = solved a beat before checkComplete says so
+  b.hidden = !empty && !n;
+  b.classList.toggle("wrong", empty === 0);
+  b.textContent = empty ? (empty === 1 ? "1 square left" : `${empty} squares left`)
+                        : (n === 1 ? "1 word wrong" : `${n} words wrong`);
+}
+$("status").onclick = () => {
+  const { gaps, wrong } = unfinishedEntries();
+  const ei = gaps.length ? gaps[0] : (wrong.length ? wrong[0] : null);
+  if (ei === null) return;
+  selectEntry(ei, firstGap(ei));
+  updateHighlights();
+};
 
 function typeLetter(ch) {
   const st = puzzleState();
@@ -1087,7 +1136,7 @@ async function showDone(justFinished, lbOnly) {
      adds 20 seconds to your time and costs nothing else. Each row shows the player's
      topics. Times are self-reported by the app (test build).</div>`;
   $("modal").classList.add("show");
-  $("closebtn").onclick = () => $("modal").classList.remove("show");
+  $("closebtn").onclick = () => { $("modal").classList.remove("show"); maybeAskTopics(); };
   const sb = $("sharebtn");
   if (sb) sb.onclick = () => {
     (navigator.clipboard ? navigator.clipboard.writeText(share) : Promise.reject())
@@ -1143,8 +1192,13 @@ document.addEventListener("keydown", (ev) => {
     ev.preventDefault(); selectEntry((sel.e - 1 + P.entries.length) % P.entries.length, 0); updateHighlights();
   }
 });
-$("prevclue").onclick = () => { selectEntry((sel.e - 1 + P.entries.length) % P.entries.length, 0); updateHighlights(); };
-$("nextclue").onclick = () => { selectEntry((sel.e + 1) % P.entries.length, 0); updateHighlights(); };
+// The clock used to start on the first keystroke, so a player could page
+// through all 10-12 clues, work the whole puzzle out in their head and only
+// then start typing. Any move off the opening clue now starts it; seeing the
+// one clue you land on for free is the concession, as the player who reported
+// this suggested.
+$("prevclue").onclick = () => { startTimer(); selectEntry((sel.e - 1 + P.entries.length) % P.entries.length, 0); updateHighlights(); };
+$("nextclue").onclick = () => { startTimer(); selectEntry((sel.e + 1) % P.entries.length, 0); updateHighlights(); };
 
 /* ---- misc ---- */
 let toastT = null;
@@ -1171,10 +1225,28 @@ window.addEventListener("scroll", dismissKbHint, { passive: true });
 document.addEventListener("keydown", dismissKbHint);
 
 /* ---- feedback ---- */
-function openFeedback() {
+function openFeedback(opts = {}) {
   if (!ONLINE) { toast("Feedback needs the online edition — use the website"); return; }
+  $("fbtitle").textContent = opts.title || "Feedback";
+  $("fbblurb").textContent = opts.blurb || "";
+  $("fbblurb").hidden = !opts.blurb;
+  $("fbtext").placeholder = opts.placeholder || "Bugs, ideas, clue gripes — anything.";
   $("fbpanel").classList.add("show");
   $("fbtext").focus();
+}
+// Asked once a week at most, and only of someone who has just finished and
+// closed the leaderboard — the one moment they are pleased with the game and
+// not mid-solve. Suggestions arrive as ordinary feedback rows.
+const TOPIC_ASK_GAP_MS = 7 * 24 * 3600 * 1000;
+function maybeAskTopics() {
+  if (!ONLINE || !P || !puzzleState().done) return;
+  if (Date.now() - LS.get("topicAsk", 0) < TOPIC_ASK_GAP_MS) return;
+  LS.set("topicAsk", Date.now());
+  setTimeout(() => openFeedback({
+    title: "Enjoying TRIVIUM?",
+    blurb: "Let us know if there are some topics you'd like to make an appearance:",
+    placeholder: "e.g. UK sitcoms, Christmas, flowers…",
+  }), 350);
 }
 $("fbbtn").onclick = openFeedback;
 $("fbtool").onclick = openFeedback;
@@ -1188,7 +1260,8 @@ $("fbsend").onclick = async () => {
   if (ok) {
     $("fbtext").value = "";
     $("fbpanel").classList.remove("show");
-    toast("Thanks — feedback sent");
+    toast($("fbtitle").textContent === "Feedback"
+      ? "Thanks — feedback sent" : "Thanks — noted for a future puzzle");
   } else {
     toast("Couldn't send right now — try again later");
   }
