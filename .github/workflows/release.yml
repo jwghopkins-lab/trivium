@@ -1,0 +1,88 @@
+# Nightly CI release — the primary release path since 15 Aug 2026.
+#
+# Why this exists: the two Claude release routines (23:10 and 00:20 UTC) draw
+# the same account usage budget and have died together three nights running,
+# leaving the site serving a stale day until morning. This job releases with
+# zero Claude usage and real logs. The Claude routines are now the backup
+# (they also rebuild the offline artifact, which CI cannot do).
+#
+# How: content sessions stage each future baked day as staging/<date>.bundle
+# (see tools/release_staged.py for the format). At ~00:05 London this job
+# unpacks every bundle whose date has arrived, commits, deploys Pages itself
+# (a GITHUB_TOKEN push cannot trigger the push-event pages workflow — same
+# reason the digest commit never redeployed the site), and runs the
+# content-log export inline (its push trigger is skipped for the same reason).
+#
+# Two crons because London midnight moves against UTC: 23:05 UTC is 00:05
+# London during BST; 00:05 UTC is 00:05 London during GMT. Whichever run is
+# not at London midnight finds nothing new to release and no-ops.
+name: release
+on:
+  schedule:
+    - cron: "5 23 * * *"
+    - cron: "5 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: trivium-publish
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.unpack.outputs.released }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack staged days that have arrived
+        id: unpack
+        run: |
+          set -euo pipefail
+          released=$(python3 tools/release_staged.py | tail -1)
+          echo "released=$released" >> "$GITHUB_OUTPUT"
+          echo "released: ${released:-nothing (no staged day has arrived)}"
+
+      - name: Commit and push
+        if: steps.unpack.outputs.released != ''
+        run: |
+          set -euo pipefail
+          git config user.name  "TRIVIUM release"
+          git config user.email "noreply@anthropic.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "already live, nothing to commit"; exit 0
+          fi
+          git commit -m "CI release ${{ steps.unpack.outputs.released }}"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "push race, retrying ($i)"; sleep 5
+          done
+          echo "could not push after 3 attempts"; exit 1
+
+      - name: Content log
+        if: steps.unpack.outputs.released != ''
+        run: python3 tools/export_log.py --post
+
+  deploy:
+    needs: release
+    if: needs.release.outputs.released != '' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4   # re-fetches main, now including the release commit
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
