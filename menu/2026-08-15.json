@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-15",
+ "tiers": {
+  "broad": [
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "hair-beauty",
+    "label": "Hair & Beauty"
+   },
+   {
+    "id": "laundry-cleaning",
+    "label": "Laundry & Cleaning"
+   }
+  ],
+  "mid": [
+   {
+    "id": "antiques-auctions",
+    "label": "Antiques & Auctions"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "dracula-gothic",
+    "label": "Dracula & Gothic Horror"
+   },
+   {
+    "id": "ghosts-hauntings",
+    "label": "Ghosts & Hauntings"
+   },
+   {
+    "id": "greek-mythology",
+    "label": "Greek Mythology"
+   }
+  ]
+ }
+}
