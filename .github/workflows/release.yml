@@ -13,14 +13,22 @@
 # reason the digest commit never redeployed the site), and runs the
 # content-log export inline (its push trigger is skipped for the same reason).
 #
-# Two crons because London midnight moves against UTC: 23:05 UTC is 00:05
-# London during BST; 00:05 UTC is 00:05 London during GMT. Whichever run is
-# not at London midnight finds nothing new to release and no-ops.
+# Two of the crons are for London midnight moving against UTC: 23:05 UTC is
+# 00:05 London during BST, 00:05 UTC is 00:05 London during GMT. Whichever is
+# not at London midnight finds nothing to release and no-ops.
+#
+# The third, at 02:05 UTC, is a catch. On the first night this workflow was
+# live the 23:05 run never fired at all — GitHub delays scheduled runs under
+# load and drops them outright often enough that one cron is not a schedule.
+# The job is idempotent and no-ops in seconds when there is nothing staged,
+# so an extra firing costs nothing and all three would have to be dropped for
+# a day to go unpublished.
 name: release
 on:
   schedule:
     - cron: "5 23 * * *"
     - cron: "5 0 * * *"
+    - cron: "5 2 * * *"
   workflow_dispatch:
 
 permissions:
