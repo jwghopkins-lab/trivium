@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-16",
+ "tiers": {
+  "broad": [
+   {
+    "id": "music",
+    "label": "Music"
+   },
+   {
+    "id": "post-letters",
+    "label": "Post & Letters"
+   },
+   {
+    "id": "shoes-footwear",
+    "label": "Shoes & Footwear"
+   }
+  ],
+  "mid": [
+   {
+    "id": "architecture",
+    "label": "Architecture"
+   },
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "the-circus",
+    "label": "The Circus"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-rome",
+    "label": "Ancient Rome"
+   },
+   {
+    "id": "choral-music",
+    "label": "20th-Century English Choral Music"
+   },
+   {
+    "id": "lighthouses",
+    "label": "Lighthouses"
+   }
+  ]
+ }
+}
