@@ -30,6 +30,13 @@ def main():
             for e in entries:
                 offered[e["id"]] += 1
 
+    on_menu = collections.defaultdict(set)          # topic -> days it was offered
+    for f in sorted(menu_dir.glob("*.json")):
+        doc = json.loads(f.read_text())
+        for tier, entries in doc["tiers"].items():
+            for e in entries:
+                on_menu[e["id"]].add(doc["date"])
+
     picks, players, by_day = collections.Counter(), collections.defaultdict(set), collections.Counter()
     for r in rows:
         combo = r.get("combo_key") or ""
@@ -40,18 +47,27 @@ def main():
             picks[tid] += 1
             players[tid].add(r.get("player_name", ""))
 
+    # The honest metric. Every play picks exactly one topic per shelf, so a
+    # topic's share of the plays on the days it was offered is its head-to-head
+    # win rate against the other two on its shelf: 33% is average, and it is not
+    # inflated by having been offered on a busy day the way a raw count is.
+    def share(tid):
+        seen = sum(n for day, n in by_day.items() if day in on_menu.get(tid, ()))
+        return (picks[tid] / seen) if seen else 0.0
+
     print(f"{len(rows)} completed puzzles across {len(by_day)} days, "
           f"{days_live} days published\n")
     print("plays per day:")
     for day, n in sorted(by_day.items()):
         print(f"  {day}  {n:>3}  {'#' * n}")
 
-    print(f"\n{'topic':<24}{'picks':>6}{'days offered':>14}{'picks/day':>11}{'players':>9}")
-    rank = sorted(picks.items(), key=lambda kv: -(kv[1] / max(1, offered.get(kv[0], 1))))
-    for tid, n in rank:
-        off = offered.get(tid, 0)
-        rate = n / off if off else 0.0
-        print(f"{tid:<24}{n:>6}{off:>14}{rate:>11.2f}{len(players[tid]):>9}")
+    print(f"\nshare = % of players who chose it on the days it was offered "
+          f"(33% is average for a shelf of three)\n")
+    print(f"{'topic':<24}{'picks':>6}{'days':>6}{'share':>8}{'players':>9}")
+    rank = sorted(set(offered) | set(picks), key=lambda t: -share(t))
+    for tid in rank:
+        print(f"{tid:<24}{picks[tid]:>6}{offered.get(tid, 0):>6}"
+              f"{share(tid) * 100:>7.0f}%{len(players[tid]):>9}")
 
     never = sorted(set(offered) - set(picks))
     if never:
