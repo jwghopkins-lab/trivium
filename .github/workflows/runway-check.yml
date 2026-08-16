@@ -1,0 +1,24 @@
+# Evening check that tomorrow's puzzle is actually ready to publish.
+#
+# The release job can only publish what is already in staging/. Everything
+# upstream of it — authoring, baking, bundling — runs in Claude sessions, and
+# those have died silently more than once: on 16 Aug both content runs fired
+# and committed nothing at all. Discovering that at 00:05 is too late to fix.
+#
+# 19:07 UTC is early evening in London either way (20:07 BST, 19:07 GMT), which
+# leaves four or five hours to bake and stage before the day turns over. A
+# failing run is the notification — GitHub emails the repo owner — so this
+# workflow is meant to go red, not to be watched.
+name: runway check
+on:
+  schedule:
+    - cron: "7 19 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Is tomorrow ready?
+        run: python3 tools/check_staged.py
