@@ -98,7 +98,7 @@ jobs:
           git config user.email "noreply@anthropic.com"
           git add poc/crossword/app
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "CI bake${{ steps.bake.outputs.baked }}"
+          git commit -m "CI bake:${{ steps.bake.outputs.baked }}"
           for i in 1 2 3; do
             git pull --rebase --quiet origin "$BRANCH" && git push --quiet origin "HEAD:$BRANCH" && exit 0
             echo "push race, retrying ($i)"; sleep 5
