@@ -1,0 +1,128 @@
+# Bake the next few days' puzzles in CI, with no Claude session involved.
+#
+# Baking is pure Python: a seeded, deterministic grid search over the committed
+# word library, no model calls anywhere. There was never a reason for it to
+# depend on a Claude cron, and those crons have failed on four consecutive
+# firings while the machine-run release has not failed once it was given a fair
+# chance. So this job clones the private content repo with a fine-grained
+# token, bakes whatever is missing, verifies it, pushes the result back, and
+# stages the bundles here for release.yml to publish.
+#
+# What still needs a model: authoring new words and clues. Nothing here does
+# that, so a run can only ever build days from words that already exist.
+#
+# 06:12 UTC gives the whole day to notice a problem, and the runway check at
+# 19:07 is the backstop. 20:12 catches anything authored during the day.
+name: bake
+on:
+  schedule:
+    - cron: "12 6 * * *"
+    - cron: "12 20 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Bake and verify, but push nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trivium-publish        # never race the release or the digest
+  cancel-in-progress: false
+
+env:
+  BRANCH: claude/ai-crossword-generator-research-2iemh5
+  RUNWAY_DAYS: 3
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone the content repo
+        env:
+          TOKEN: ${{ secrets.GREYHOUND2_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN:-}" ]; then
+            echo "::error::GREYHOUND2_TOKEN is not set — add it under Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          git clone --quiet --branch "$BRANCH" --depth 1 \
+            "https://x-access-token:${TOKEN}@github.com/jwghopkins-lab/greyhound2.git" gh2
+          echo "cloned $BRANCH at $(git -C gh2 rev-parse --short HEAD)"
+          python3 -c "import json,glob; print(len(glob.glob('gh2/poc/crossword/library/topics/*.json')), 'topics in library')"
+
+      - name: Bake any missing day
+        id: bake
+        run: |
+          set -euo pipefail
+          cd gh2/poc/crossword
+          TODAY=$(TZ=Europe/London date +%F)
+          echo "today (London) is $TODAY"
+          baked=""
+          for i in $(seq 1 "$RUNWAY_DAYS"); do
+            DAY=$(date -u -d "$TODAY +$i day" +%F)
+            if [ -d "app/puzzles/$DAY" ]; then
+              echo "  $DAY already baked"
+              continue
+            fi
+            echo "  baking $DAY"
+            python3 pipeline/bake_day.py "$DAY" --attempts 150 --ease 0.1
+            baked="$baked $DAY"
+          done
+          echo "baked=${baked# }" >> "$GITHUB_OUTPUT"
+
+      - name: Verify
+        run: |
+          set -euo pipefail
+          cd gh2/poc/crossword
+          # exits non-zero on any structural failure or near-duplicate puzzle
+          python3 pipeline/verify_bakes.py
+
+      - name: Push the bakes back
+        if: steps.bake.outputs.baked != '' && inputs.dry_run != true
+        env:
+          TOKEN: ${{ secrets.GREYHOUND2_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd gh2
+          git config user.name  "TRIVIUM bake"
+          git config user.email "noreply@anthropic.com"
+          git add poc/crossword/app
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "CI bake${{ steps.bake.outputs.baked }}"
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin "$BRANCH" && git push --quiet origin "HEAD:$BRANCH" && exit 0
+            echo "push race, retrying ($i)"; sleep 5
+          done
+          echo "::error::could not push bakes after 3 attempts"; exit 1
+
+      - name: Stage for release
+        run: |
+          set -euo pipefail
+          python3 gh2/poc/crossword/pipeline/stage_days.py --dest "$GITHUB_WORKSPACE/staging"
+
+      - name: Commit staging
+        if: inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          git config user.name  "TRIVIUM bake"
+          git config user.email "noreply@anthropic.com"
+          git add staging
+          if git diff --cached --quiet; then echo "staging unchanged"; exit 0; fi
+          git commit -m "stage future days (CI bake)"
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin main && git push --quiet origin main && exit 0
+            echo "push race, retrying ($i)"; sleep 5
+          done
+          echo "::error::could not push staging after 3 attempts"; exit 1
+
+      - name: Summary
+        run: |
+          echo "baked: ${{ steps.bake.outputs.baked || 'nothing (runway already full)' }}"
+          echo "dry run: ${{ inputs.dry_run || 'false (scheduled)' }}"
+          ls -1 staging 2>/dev/null || echo "no staging directory"
