@@ -24,6 +24,10 @@ on:
         description: "Bake and verify, but push nothing"
         type: boolean
         default: true
+      runway_days:
+        description: "How many days ahead to keep baked"
+        type: string
+        default: "3"
 
 permissions:
   contents: write
@@ -34,7 +38,7 @@ concurrency:
 
 env:
   BRANCH: claude/ai-crossword-generator-research-2iemh5
-  RUNWAY_DAYS: 3
+  RUNWAY_DAYS: ${{ inputs.runway_days || '3' }}
 
 jobs:
   bake:
