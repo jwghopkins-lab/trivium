@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-18",
+ "tiers": {
+  "broad": [
+   {
+    "id": "christmas",
+    "label": "Christmas"
+   },
+   {
+    "id": "halloween",
+    "label": "Halloween"
+   },
+   {
+    "id": "the-office",
+    "label": "The Office"
+   }
+  ],
+  "mid": [
+   {
+    "id": "taylor-swift",
+    "label": "Taylor Swift"
+   },
+   {
+    "id": "the-olympics",
+    "label": "The Olympics"
+   },
+   {
+    "id": "uk-sitcoms",
+    "label": "UK Sitcoms"
+   }
+  ],
+  "niche": [
+   {
+    "id": "narnia",
+    "label": "Narnia"
+   },
+   {
+    "id": "paddington",
+    "label": "Paddington Bear"
+   },
+   {
+    "id": "the-wizard-of-oz",
+    "label": "The Wizard of Oz"
+   }
+  ]
+ }
+}
