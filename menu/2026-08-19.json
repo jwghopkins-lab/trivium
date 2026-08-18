@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-19",
+ "tiers": {
+  "broad": [
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   }
+  ],
+  "mid": [
+   {
+    "id": "mountains-climbing",
+    "label": "Mountains & Climbing"
+   },
+   {
+    "id": "sewing-knitting",
+    "label": "Sewing & Knitting"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   }
+  ],
+  "niche": [
+   {
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   }
+  ]
+ }
+}
