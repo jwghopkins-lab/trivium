@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-20",
+ "tiers": {
+  "broad": [
+   {
+    "id": "the-supermarket",
+    "label": "At the Supermarket"
+   },
+   {
+    "id": "time-clocks",
+    "label": "Time & Clocks"
+   },
+   {
+    "id": "transport-travel",
+    "label": "Getting Around"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bees-beekeeping",
+    "label": "Bees & Beekeeping"
+   },
+   {
+    "id": "horses-riding",
+    "label": "Horses & Riding"
+   },
+   {
+    "id": "photography",
+    "label": "Photography"
+   }
+  ],
+  "niche": [
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "norse-mythology",
+    "label": "Norse Mythology"
+   },
+   {
+    "id": "robin-hood",
+    "label": "Robin Hood"
+   }
+  ]
+ }
+}
