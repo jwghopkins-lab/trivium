@@ -3,44 +3,44 @@
  "tiers": {
   "broad": [
    {
-    "id": "the-supermarket",
-    "label": "At the Supermarket"
+    "id": "pets",
+    "label": "Pets & Petcare"
    },
    {
-    "id": "time-clocks",
-    "label": "Time & Clocks"
+    "id": "post-letters",
+    "label": "Post & Letters"
    },
    {
-    "id": "transport-travel",
-    "label": "Getting Around"
+    "id": "sleep-and-dreams",
+    "label": "Sleep & Dreams"
    }
   ],
   "mid": [
    {
-    "id": "bees-beekeeping",
-    "label": "Bees & Beekeeping"
+    "id": "baking",
+    "label": "Baking & Cakes"
    },
    {
-    "id": "horses-riding",
-    "label": "Horses & Riding"
+    "id": "board-games",
+    "label": "Board Game Night"
    },
    {
-    "id": "photography",
-    "label": "Photography"
+    "id": "deserts",
+    "label": "Deserts"
    }
   ],
   "niche": [
    {
-    "id": "codes-ciphers",
-    "label": "Codes & Ciphers"
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
    },
    {
-    "id": "norse-mythology",
-    "label": "Norse Mythology"
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
    },
    {
-    "id": "robin-hood",
-    "label": "Robin Hood"
+    "id": "treasure-island",
+    "label": "Treasure Island"
    }
   ]
  }
