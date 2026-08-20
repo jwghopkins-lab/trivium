@@ -28,6 +28,10 @@ on:
         description: "How many days ahead to keep baked"
         type: string
         default: "3"
+      max_repeat_pct:
+        description: "Discard a freshly baked day that serves more than this % already-seen answers"
+        type: string
+        default: "10"
 
 permissions:
   contents: write
@@ -39,6 +43,7 @@ concurrency:
 env:
   BRANCH: claude/ai-crossword-generator-research-2iemh5
   RUNWAY_DAYS: ${{ inputs.runway_days || '3' }}
+  MAX_REPEAT_PCT: ${{ inputs.max_repeat_pct || '10' }}
 
 jobs:
   bake:
@@ -80,6 +85,34 @@ jobs:
           done
           echo "baked=${baked# }" >> "$GITHUB_OUTPUT"
 
+      # A day baked from spent banks is structurally perfect and useless: the
+      # player meets the same answers again under a different topic name.
+      # verify_bakes.py cannot see that, so on 20 Aug this job cheerfully
+      # rebuilt and staged a 52%-repeat day that had been discarded by hand
+      # hours earlier. A hand-discard is not a fix if the machine re-does the
+      # work unguarded, so the gate lives here, in the machine.
+      - name: Freshness gate
+        id: fresh
+        run: |
+          set -euo pipefail
+          cd gh2/poc/crossword
+          discarded=""
+          for DAY in ${{ steps.bake.outputs.baked }}; do
+            if python3 pipeline/day_freshness.py "$DAY" --max "$MAX_REPEAT_PCT"; then
+              continue
+            fi
+            echo "::warning::discarding $DAY — more than ${MAX_REPEAT_PCT}% of its answers have been served before"
+            rm -rf "app/puzzles/$DAY" "app/menu/$DAY.json" "app/pars/$DAY.json"
+            discarded="$discarded $DAY"
+          done
+          echo "discarded=${discarded# }" >> "$GITHUB_OUTPUT"
+          # what actually survived is what may be pushed
+          kept=""
+          for DAY in ${{ steps.bake.outputs.baked }}; do
+            if [ -d "app/puzzles/$DAY" ]; then kept="$kept $DAY"; fi
+          done
+          echo "kept=${kept# }" >> "$GITHUB_OUTPUT"
+
       - name: Verify
         run: |
           set -euo pipefail
@@ -88,7 +121,7 @@ jobs:
           python3 pipeline/verify_bakes.py
 
       - name: Push the bakes back
-        if: steps.bake.outputs.baked != '' && inputs.dry_run != true
+        if: steps.fresh.outputs.kept != '' && inputs.dry_run != true
         env:
           TOKEN: ${{ secrets.GREYHOUND2_TOKEN }}
         run: |
@@ -98,7 +131,7 @@ jobs:
           git config user.email "noreply@anthropic.com"
           git add poc/crossword/app
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "CI bake:${{ steps.bake.outputs.baked }}"
+          git commit -m "CI bake:${{ steps.fresh.outputs.kept }}"
           for i in 1 2 3; do
             git pull --rebase --quiet origin "$BRANCH" && git push --quiet origin "HEAD:$BRANCH" && exit 0
             echo "push race, retrying ($i)"; sleep 5
@@ -127,6 +160,12 @@ jobs:
 
       - name: Summary
         run: |
-          echo "baked: ${{ steps.bake.outputs.baked || 'nothing (runway already full)' }}"
-          echo "dry run: ${{ inputs.dry_run || 'false (scheduled)' }}"
+          echo "baked:     ${{ steps.bake.outputs.baked || 'nothing (runway already full)' }}"
+          echo "kept:      ${{ steps.fresh.outputs.kept || 'none' }}"
+          echo "discarded: ${{ steps.fresh.outputs.discarded || 'none' }}"
+          echo "dry run:   ${{ inputs.dry_run || 'false (scheduled)' }}"
           ls -1 staging 2>/dev/null || echo "no staging directory"
+          if [ -n "${{ steps.fresh.outputs.discarded }}" ]; then
+            echo "::error::${{ steps.fresh.outputs.discarded }} could not be baked below ${MAX_REPEAT_PCT}% repeated answers. The library has no fresh words left for those days — author new topics or top up existing banks, then re-run."
+            exit 1
+          fi
