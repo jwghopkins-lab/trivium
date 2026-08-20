@@ -1,18 +1,20 @@
-# Bake the next few days' puzzles in CI, with no Claude session involved.
+# Bake, gate, stage and verify the next few days — no Claude session involved.
 #
-# Baking is pure Python: a seeded, deterministic grid search over the committed
-# word library, no model calls anywhere. There was never a reason for it to
-# depend on a Claude cron, and those crons have failed on four consecutive
-# firings while the machine-run release has not failed once it was given a fair
-# chance. So this job clones the private content repo with a fine-grained
-# token, bakes whatever is missing, verifies it, pushes the result back, and
-# stages the bundles here for release.yml to publish.
+# All the logic lives in the content repo's pipeline/daily_update.py, which is
+# the same entry point the Claude routines call. This file only clones, runs
+# it, and lets its exit code colour the run. Every rule that used to be inline
+# here (the freshness gate, the discard, the staging check) moved into that
+# script after each of them was found missing from at least one of the four
+# callers that hand-sequenced the steps.
 #
-# What still needs a model: authoring new words and clues. Nothing here does
-# that, so a run can only ever build days from words that already exist.
+# A red run means one of two things, and the log's last lines say which:
+#  - the library has no fresh words for a day (a content signal — author
+#    topics/words; the Claude content runs at 00:10 and 05:20 do this), or
+#  - a mechanical step failed (bake, verify, push, or remote-staging mismatch).
 #
-# 06:12 UTC gives the whole day to notice a problem, and the runway check at
-# 19:07 is the backstop. 20:12 catches anything authored during the day.
+# 06:12 gives the whole day to react; 20:12 catches anything authored during
+# the day. runway-check.yml at 19:07 stays as an independent alarm on purpose:
+# the detector should not share a failure domain with the actor.
 name: bake
 on:
   schedule:
@@ -29,9 +31,9 @@ on:
         type: string
         default: "3"
       max_repeat_pct:
-        description: "Discard a freshly baked day that serves more than this % already-seen answers"
+        description: "Reject a day serving more than this % already-seen answers"
         type: string
-        default: "10"
+        default: "5"
 
 permissions:
   contents: write
@@ -43,7 +45,7 @@ concurrency:
 env:
   BRANCH: claude/ai-crossword-generator-research-2iemh5
   RUNWAY_DAYS: ${{ inputs.runway_days || '3' }}
-  MAX_REPEAT_PCT: ${{ inputs.max_repeat_pct || '10' }}
+  MAX_REPEAT_PCT: ${{ inputs.max_repeat_pct || '5' }}
 
 jobs:
   bake:
@@ -63,143 +65,14 @@ jobs:
           git clone --quiet --branch "$BRANCH" --depth 1 \
             "https://x-access-token:${TOKEN}@github.com/jwghopkins-lab/greyhound2.git" gh2
           echo "cloned $BRANCH at $(git -C gh2 rev-parse --short HEAD)"
-          python3 -c "import json,glob; print(len(glob.glob('gh2/poc/crossword/library/topics/*.json')), 'topics in library')"
 
-      - name: Bake any missing day
-        id: bake
-        run: |
-          set -euo pipefail
-          cd gh2/poc/crossword
-          TODAY=$(TZ=Europe/London date +%F)
-          echo "today (London) is $TODAY"
-          baked=""
-          for i in $(seq 1 "$RUNWAY_DAYS"); do
-            DAY=$(date -u -d "$TODAY +$i day" +%F)
-            if [ -d "app/puzzles/$DAY" ]; then
-              echo "  $DAY already baked"
-              continue
-            fi
-            echo "  baking $DAY"
-            python3 pipeline/bake_day.py "$DAY" --attempts 150 --ease 0.1
-            baked="$baked $DAY"
-          done
-          echo "baked=${baked# }" >> "$GITHUB_OUTPUT"
-
-      # A day baked from spent banks is structurally perfect and useless: the
-      # player meets the same answers again under a different topic name.
-      # verify_bakes.py cannot see that, so on 20 Aug this job cheerfully
-      # rebuilt and staged a 52%-repeat day that had been discarded by hand
-      # hours earlier. A hand-discard is not a fix if the machine re-does the
-      # work unguarded, so the gate lives here, in the machine.
-      - name: Freshness gate
-        id: fresh
-        run: |
-          set -euo pipefail
-          cd gh2/poc/crossword
-          discarded=""
-          for DAY in ${{ steps.bake.outputs.baked }}; do
-            if python3 pipeline/day_freshness.py "$DAY" --max "$MAX_REPEAT_PCT"; then
-              continue
-            fi
-            echo "::warning::discarding $DAY — more than ${MAX_REPEAT_PCT}% of its answers have been served before"
-            rm -rf "app/puzzles/$DAY" "app/menu/$DAY.json" "app/pars/$DAY.json"
-            discarded="$discarded $DAY"
-          done
-          # Days already committed by an earlier run were never gated, so a
-          # stale one can sit in the runway indefinitely. Measure them too —
-          # but only report. Deleting a day that is already staged would leave
-          # a hole with nothing to fill it, which is worse than a stale day.
-          stale=""
-          TODAY=$(TZ=Europe/London date +%F)
-          for i in $(seq 1 "$RUNWAY_DAYS"); do
-            DAY=$(date -u -d "$TODAY +$i day" +%F)
-            case " ${{ steps.bake.outputs.baked }} " in *" $DAY "*) continue;; esac
-            if [ ! -d "app/puzzles/$DAY" ]; then continue; fi
-            if python3 pipeline/day_freshness.py "$DAY" --max "$MAX_REPEAT_PCT"; then
-              continue
-            fi
-            echo "::warning::$DAY is already committed and stale — re-bake it once the library has fresh words"
-            stale="$stale $DAY"
-          done
-          echo "stale=${stale# }" >> "$GITHUB_OUTPUT"
-          echo "discarded=${discarded# }" >> "$GITHUB_OUTPUT"
-          # A discarded day's answers are already in history.json, written by
-          # the bake that just ran. Leaving them there would make the retry
-          # dodge words no player ever saw, so the discard has to reach history
-          # as well as the puzzle files.
-          if [ -n "$discarded" ]; then python3 pipeline/prune_history.py; fi
-          # what actually survived is what may be pushed
-          kept=""
-          for DAY in ${{ steps.bake.outputs.baked }}; do
-            if [ -d "app/puzzles/$DAY" ]; then kept="$kept $DAY"; fi
-          done
-          echo "kept=${kept# }" >> "$GITHUB_OUTPUT"
-
-      - name: Verify
-        run: |
-          set -euo pipefail
-          cd gh2/poc/crossword
-          # exits non-zero on any structural failure or near-duplicate puzzle
-          python3 pipeline/verify_bakes.py
-
-      - name: Push the bakes back
-        if: steps.fresh.outputs.kept != '' && inputs.dry_run != true
-        env:
-          TOKEN: ${{ secrets.GREYHOUND2_TOKEN }}
-        run: |
-          set -euo pipefail
-          cd gh2
-          git config user.name  "TRIVIUM bake"
-          git config user.email "noreply@anthropic.com"
-          git add poc/crossword/app
-          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "CI bake:${{ steps.fresh.outputs.kept }}"
-          for i in 1 2 3; do
-            git pull --rebase --quiet origin "$BRANCH" && git push --quiet origin "HEAD:$BRANCH" && exit 0
-            echo "push race, retrying ($i)"; sleep 5
-          done
-          echo "::error::could not push bakes after 3 attempts"; exit 1
-
-      - name: Stage for release
-        run: |
-          set -euo pipefail
-          python3 gh2/poc/crossword/pipeline/stage_days.py --dest "$GITHUB_WORKSPACE/staging"
-
-      - name: Commit staging
-        if: inputs.dry_run != true
+      - name: Daily update
         run: |
           set -euo pipefail
           git config user.name  "TRIVIUM bake"
           git config user.email "noreply@anthropic.com"
-          git add staging
-          if git diff --cached --quiet; then echo "staging unchanged"; exit 0; fi
-          git commit -m "stage future days (CI bake)"
-          for i in 1 2 3; do
-            git pull --rebase --quiet origin main && git push --quiet origin main && exit 0
-            echo "push race, retrying ($i)"; sleep 5
-          done
-          echo "::error::could not push staging after 3 attempts"; exit 1
-
-      # "A bundle exists for that day" is a different claim from "that bundle
-      # is the bake on disk", and only the second one matters. CI released a
-      # stale 43%-repeat day once because the first claim was true and nobody
-      # checked the second.
-      - name: Verify staging matches the bake
-        if: inputs.dry_run != true
-        run: |
-          set -euo pipefail
-          cd gh2/poc/crossword
-          python3 pipeline/verify_staging.py --repo "$GITHUB_WORKSPACE" --ref HEAD
-
-      - name: Summary
-        run: |
-          echo "baked:     ${{ steps.bake.outputs.baked || 'nothing (runway already full)' }}"
-          echo "kept:      ${{ steps.fresh.outputs.kept || 'none' }}"
-          echo "discarded: ${{ steps.fresh.outputs.discarded || 'none' }}"
-          echo "dry run:   ${{ inputs.dry_run || 'false (scheduled)' }}"
-          ls -1 staging 2>/dev/null || echo "no staging directory"
-          echo "stale:     ${{ steps.fresh.outputs.stale || 'none' }}"
-          if [ -n "${{ steps.fresh.outputs.discarded }}${{ steps.fresh.outputs.stale }}" ]; then
-            echo "::error::days over ${MAX_REPEAT_PCT}% repeated answers — discarded:${{ steps.fresh.outputs.discarded || ' none' }} already-committed:${{ steps.fresh.outputs.stale || ' none' }}. The library has no fresh words for them; author new topics or top up existing banks, then re-run."
-            exit 1
-          fi
+          PUSH="--push"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then PUSH=""; fi
+          python3 gh2/poc/crossword/pipeline/daily_update.py \
+            --days "$RUNWAY_DAYS" --max-repeat "$MAX_REPEAT_PCT" \
+            --trivium "$GITHUB_WORKSPACE" $PUSH
