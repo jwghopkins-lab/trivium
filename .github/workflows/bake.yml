@@ -180,6 +180,17 @@ jobs:
           done
           echo "::error::could not push staging after 3 attempts"; exit 1
 
+      # "A bundle exists for that day" is a different claim from "that bundle
+      # is the bake on disk", and only the second one matters. CI released a
+      # stale 43%-repeat day once because the first claim was true and nobody
+      # checked the second.
+      - name: Verify staging matches the bake
+        if: inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          cd gh2/poc/crossword
+          python3 pipeline/verify_staging.py --repo "$GITHUB_WORKSPACE" --ref HEAD
+
       - name: Summary
         run: |
           echo "baked:     ${{ steps.bake.outputs.baked || 'nothing (runway already full)' }}"
