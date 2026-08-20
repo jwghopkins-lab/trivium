@@ -105,6 +105,23 @@ jobs:
             rm -rf "app/puzzles/$DAY" "app/menu/$DAY.json" "app/pars/$DAY.json"
             discarded="$discarded $DAY"
           done
+          # Days already committed by an earlier run were never gated, so a
+          # stale one can sit in the runway indefinitely. Measure them too —
+          # but only report. Deleting a day that is already staged would leave
+          # a hole with nothing to fill it, which is worse than a stale day.
+          stale=""
+          TODAY=$(TZ=Europe/London date +%F)
+          for i in $(seq 1 "$RUNWAY_DAYS"); do
+            DAY=$(date -u -d "$TODAY +$i day" +%F)
+            case " ${{ steps.bake.outputs.baked }} " in *" $DAY "*) continue;; esac
+            if [ ! -d "app/puzzles/$DAY" ]; then continue; fi
+            if python3 pipeline/day_freshness.py "$DAY" --max "$MAX_REPEAT_PCT"; then
+              continue
+            fi
+            echo "::warning::$DAY is already committed and stale — re-bake it once the library has fresh words"
+            stale="$stale $DAY"
+          done
+          echo "stale=${stale# }" >> "$GITHUB_OUTPUT"
           echo "discarded=${discarded# }" >> "$GITHUB_OUTPUT"
           # what actually survived is what may be pushed
           kept=""
@@ -165,7 +182,8 @@ jobs:
           echo "discarded: ${{ steps.fresh.outputs.discarded || 'none' }}"
           echo "dry run:   ${{ inputs.dry_run || 'false (scheduled)' }}"
           ls -1 staging 2>/dev/null || echo "no staging directory"
-          if [ -n "${{ steps.fresh.outputs.discarded }}" ]; then
-            echo "::error::${{ steps.fresh.outputs.discarded }} could not be baked below ${MAX_REPEAT_PCT}% repeated answers. The library has no fresh words left for those days — author new topics or top up existing banks, then re-run."
+          echo "stale:     ${{ steps.fresh.outputs.stale || 'none' }}"
+          if [ -n "${{ steps.fresh.outputs.discarded }}${{ steps.fresh.outputs.stale }}" ]; then
+            echo "::error::days over ${MAX_REPEAT_PCT}% repeated answers — discarded:${{ steps.fresh.outputs.discarded || ' none' }} already-committed:${{ steps.fresh.outputs.stale || ' none' }}. The library has no fresh words for them; author new topics or top up existing banks, then re-run."
             exit 1
           fi
