@@ -123,6 +123,11 @@ jobs:
           done
           echo "stale=${stale# }" >> "$GITHUB_OUTPUT"
           echo "discarded=${discarded# }" >> "$GITHUB_OUTPUT"
+          # A discarded day's answers are already in history.json, written by
+          # the bake that just ran. Leaving them there would make the retry
+          # dodge words no player ever saw, so the discard has to reach history
+          # as well as the puzzle files.
+          if [ -n "$discarded" ]; then python3 pipeline/prune_history.py; fi
           # what actually survived is what may be pushed
           kept=""
           for DAY in ${{ steps.bake.outputs.baked }}; do
