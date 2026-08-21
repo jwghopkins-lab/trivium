@@ -103,3 +103,9 @@ jobs:
           path: .
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      # The deploy above can be green while the site serves yesterday — that
+      # happened on 21 Aug. Green means "an artifact was published", and only
+      # fetching the live CDN proves it was the right one.
+      - name: Verify the live site serves today
+        run: python3 tools/check_live.py
