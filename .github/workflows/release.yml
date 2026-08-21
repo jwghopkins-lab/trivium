@@ -85,7 +85,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4   # re-fetches main, now including the release commit
+      # ref: main is load-bearing. Without it, checkout uses the commit that
+      # TRIGGERED the run — which predates the release commit this same run
+      # just pushed — so the deploy job green-lights a Pages deploy of the
+      # tree from before today's puzzle was unpacked. That shipped a site
+      # without its own day on 21 Aug; it had been masked every earlier night
+      # by a credentialed Claude push minutes later re-triggering the
+      # push-event deploy.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/configure-pages@v5
         with:
           enablement: true
