@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-22",
+ "tiers": {
+  "broad": [
+   {
+    "id": "birthdays",
+    "label": "Birthdays"
+   },
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "the-pub",
+    "label": "The Pub"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bridges",
+    "label": "Bridges"
+   },
+   {
+    "id": "coffee-cafes",
+    "label": "Coffee & Caf\u00e9s"
+   },
+   {
+    "id": "weddings",
+    "label": "Weddings"
+   }
+  ],
+  "niche": [
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
