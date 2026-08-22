@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-23",
+ "tiers": {
+  "broad": [
+   {
+    "id": "airports",
+    "label": "Airports"
+   },
+   {
+    "id": "hairdressers",
+    "label": "Hairdressers"
+   },
+   {
+    "id": "phones-and-apps",
+    "label": "Phones & Apps"
+   }
+  ],
+  "mid": [
+   {
+    "id": "hot-air-balloons",
+    "label": "Hot Air Balloons"
+   },
+   {
+    "id": "volcanoes",
+    "label": "Volcanoes"
+   },
+   {
+    "id": "whisky-distilling",
+    "label": "Whisky & Distilling"
+   }
+  ],
+  "niche": [
+   {
+    "id": "frankenstein",
+    "label": "Frankenstein"
+   },
+   {
+    "id": "peter-pan",
+    "label": "Peter Pan"
+   },
+   {
+    "id": "the-jungle-book",
+    "label": "The Jungle Book"
+   }
+  ]
+ }
+}
