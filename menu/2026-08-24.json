@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-24",
+ "tiers": {
+  "broad": [
+   {
+    "id": "ice-cream",
+    "label": "Ice Cream"
+   },
+   {
+    "id": "the-playground",
+    "label": "The Playground"
+   },
+   {
+    "id": "trains-railways",
+    "label": "Trains & Railways"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fishing",
+    "label": "Fishing"
+   },
+   {
+    "id": "gemstones-jewellery",
+    "label": "Gemstones & Jewellery"
+   },
+   {
+    "id": "tea",
+    "label": "Tea"
+   }
+  ],
+  "niche": [
+   {
+    "id": "asterix",
+    "label": "Asterix"
+   },
+   {
+    "id": "harry-potter",
+    "label": "Harry Potter"
+   },
+   {
+    "id": "wallace-and-gromit",
+    "label": "Wallace & Gromit"
+   }
+  ]
+ }
+}
