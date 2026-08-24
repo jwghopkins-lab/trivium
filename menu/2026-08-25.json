@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-25",
+ "tiers": {
+  "broad": [
+   {
+    "id": "newspapers",
+    "label": "Newspapers"
+   },
+   {
+    "id": "pets",
+    "label": "Pets & Petcare"
+   },
+   {
+    "id": "the-cinema",
+    "label": "At the Cinema"
+   }
+  ],
+  "mid": [
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "rugby",
+    "label": "Rugby"
+   },
+   {
+    "id": "windmills",
+    "label": "Windmills & Watermills"
+   }
+  ],
+  "niche": [
+   {
+    "id": "doctor-who",
+    "label": "Doctor Who"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   },
+   {
+    "id": "thunderbirds",
+    "label": "Thunderbirds"
+   }
+  ]
+ }
+}
