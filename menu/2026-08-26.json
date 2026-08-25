@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-26",
+ "tiers": {
+  "broad": [
+   {
+    "id": "christmas",
+    "label": "Christmas"
+   },
+   {
+    "id": "picnics",
+    "label": "Picnics"
+   },
+   {
+    "id": "swimming",
+    "label": "Swimming"
+   }
+  ],
+  "mid": [
+   {
+    "id": "disney",
+    "label": "Disney"
+   },
+   {
+    "id": "ice-skating",
+    "label": "Ice Skating"
+   },
+   {
+    "id": "submarines",
+    "label": "Submarines"
+   }
+  ],
+  "niche": [
+   {
+    "id": "choral-music",
+    "label": "20th-Century English Choral Music"
+   },
+   {
+    "id": "fairy-tales",
+    "label": "Fairy Tales"
+   },
+   {
+    "id": "julia-donaldson",
+    "label": "Julia Donaldson"
+   }
+  ]
+ }
+}
