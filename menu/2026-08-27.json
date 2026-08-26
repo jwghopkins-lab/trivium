@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-27",
+ "tiers": {
+  "broad": [
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "the-garage",
+    "label": "The Garage"
+   },
+   {
+    "id": "the-launderette",
+    "label": "The Launderette"
+   }
+  ],
+  "mid": [
+   {
+    "id": "cricket",
+    "label": "Cricket"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   },
+   {
+    "id": "stained-glass",
+    "label": "Stained Glass"
+   }
+  ],
+  "niche": [
+   {
+    "id": "jane-austen",
+    "label": "Jane Austen"
+   },
+   {
+    "id": "paddington",
+    "label": "Paddington Bear"
+   },
+   {
+    "id": "the-moon-landings",
+    "label": "The Moon Landings"
+   }
+  ]
+ }
+}
