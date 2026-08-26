@@ -77,9 +77,18 @@ jobs:
         if: steps.unpack.outputs.released != ''
         run: python3 tools/export_log.py --post
 
+  # Runs on EVERY release run, not only the one that unpacked a day. On
+  # 25-26 Aug the 23:05 run unpacked 2026-08-26, pushed it, deployed, and then
+  # failed its own live check; the 00:05 and 02:05 runs found nothing left to
+  # unpack, so `released` was empty, so this job was SKIPPED and never retried.
+  # The site served the previous day for eleven hours with the puzzle sitting
+  # in the repo the whole time. A deploy costs ~30 seconds and is idempotent,
+  # so the two later crons are worth far more as automatic retries than as
+  # no-ops: whatever went wrong at 23:05 now gets two more chances before
+  # anyone is awake, and check_live still fails loudly if all three miss.
   deploy:
     needs: release
-    if: needs.release.outputs.released != '' || github.event_name == 'workflow_dispatch'
+    if: always() && needs.release.result == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
