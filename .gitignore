@@ -1,1 +1,6 @@
 tools/logdata/
+# The bake workflow clones greyhound2 into gh2/ at runtime. Without this it
+# lands in the index as a bare gitlink with no .gitmodules entry, and every
+# later checkout cleanup dies with
+#   fatal: No url found for submodule path 'gh2' in .gitmodules
+gh2/
