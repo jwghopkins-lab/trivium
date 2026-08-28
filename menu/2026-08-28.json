@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-28",
+ "tiers": {
+  "broad": [
+   {
+    "id": "the-dentist",
+    "label": "At the Dentist"
+   },
+   {
+    "id": "the-library",
+    "label": "The Library"
+   },
+   {
+    "id": "the-supermarket",
+    "label": "At the Supermarket"
+   }
+  ],
+  "mid": [
+   {
+    "id": "canals-narrowboats",
+    "label": "Canals & Narrowboats"
+   },
+   {
+    "id": "orchards-cider",
+    "label": "Orchards & Cider"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   }
+  ],
+  "niche": [
+   {
+    "id": "enid-blyton",
+    "label": "Enid Blyton"
+   },
+   {
+    "id": "gilbert-and-sullivan",
+    "label": "Gilbert & Sullivan"
+   },
+   {
+    "id": "the-tudors",
+    "label": "The Tudors"
+   }
+  ]
+ }
+}
