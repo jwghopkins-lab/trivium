@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-29",
+ "tiers": {
+  "broad": [
+   {
+    "id": "motorway-services",
+    "label": "Motorways & Service Stations"
+   },
+   {
+    "id": "post-letters",
+    "label": "Post & Letters"
+   },
+   {
+    "id": "the-gym",
+    "label": "The Gym & Keeping Fit"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fireworks-bonfire-night",
+    "label": "Fireworks & Bonfire Night"
+   },
+   {
+    "id": "taylor-swift",
+    "label": "Taylor Swift"
+   },
+   {
+    "id": "the-allotment",
+    "label": "The Allotment"
+   }
+  ],
+  "niche": [
+   {
+    "id": "great-fire-of-london",
+    "label": "The Great Fire of London"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "the-hobbit",
+    "label": "The Hobbit"
+   }
+  ]
+ }
+}
