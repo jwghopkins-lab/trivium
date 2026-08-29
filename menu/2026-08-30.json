@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-30",
+ "tiers": {
+  "broad": [
+   {
+    "id": "markets-and-stalls",
+    "label": "Markets & Stalls"
+   },
+   {
+    "id": "rubbish-recycling",
+    "label": "Rubbish & Recycling"
+   },
+   {
+    "id": "shoes-footwear",
+    "label": "Shoes & Footwear"
+   }
+  ],
+  "mid": [
+   {
+    "id": "blacksmithing",
+    "label": "The Blacksmith's Forge"
+   },
+   {
+    "id": "cheese",
+    "label": "Cheese"
+   },
+   {
+    "id": "mushrooms-foraging",
+    "label": "Mushrooms & Foraging"
+   }
+  ],
+  "niche": [
+   {
+    "id": "robin-hood",
+    "label": "Robin Hood"
+   },
+   {
+    "id": "the-brontes",
+    "label": "The Brontes"
+   },
+   {
+    "id": "the-suffragettes",
+    "label": "The Suffragettes"
+   }
+  ]
+ }
+}
