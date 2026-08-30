@@ -1,0 +1,47 @@
+{
+ "date": "2026-08-31",
+ "tiers": {
+  "broad": [
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "moving-house",
+    "label": "Moving House"
+   },
+   {
+    "id": "the-village-fete",
+    "label": "The Village Fete"
+   }
+  ],
+  "mid": [
+   {
+    "id": "butterflies-moths",
+    "label": "Butterflies & Moths"
+   },
+   {
+    "id": "herbs-spices",
+    "label": "Herbs & Spices"
+   },
+   {
+    "id": "puppetry",
+    "label": "Puppets & Punch and Judy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "bletchley-park",
+    "label": "Bletchley Park"
+   },
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   },
+   {
+    "id": "stonehenge",
+    "label": "Stonehenge & Standing Stones"
+   }
+  ]
+ }
+}
