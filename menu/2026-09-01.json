@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-01",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-vets",
+    "label": "At the Vet's"
+   },
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "the-opticians",
+    "label": "At the Opticians"
+   }
+  ],
+  "mid": [
+   {
+    "id": "caves-caving",
+    "label": "Caves & Caving"
+   },
+   {
+    "id": "falconry",
+    "label": "Falconry"
+   },
+   {
+    "id": "volcanoes",
+    "label": "Volcanoes"
+   }
+  ],
+  "niche": [
+   {
+    "id": "canterbury-tales",
+    "label": "The Canterbury Tales"
+   },
+   {
+    "id": "the-blitz",
+    "label": "The Blitz"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
