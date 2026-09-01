@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-02",
+ "tiers": {
+  "broad": [
+   {
+    "id": "buses-and-coaches",
+    "label": "Buses & Coaches"
+   },
+   {
+    "id": "pets",
+    "label": "Pets & Petcare"
+   },
+   {
+    "id": "sandwiches",
+    "label": "Sandwiches"
+   }
+  ],
+  "mid": [
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "beer-brewing",
+    "label": "Beer & Brewing"
+   },
+   {
+    "id": "morris-dancing",
+    "label": "Morris Dancing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "the-jungle-book",
+    "label": "The Jungle Book"
+   },
+   {
+    "id": "the-norman-conquest",
+    "label": "1066 and the Norman Conquest"
+   },
+   {
+    "id": "wallace-and-gromit",
+    "label": "Wallace & Gromit"
+   }
+  ]
+ }
+}
