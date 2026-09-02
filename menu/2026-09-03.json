@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-03",
+ "tiers": {
+  "broad": [
+   {
+    "id": "keys-and-locks",
+    "label": "Keys & Locks"
+   },
+   {
+    "id": "takeaways",
+    "label": "Takeaways"
+   },
+   {
+    "id": "the-human-body",
+    "label": "The Human Body"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bell-ringing",
+    "label": "Bell Ringing"
+   },
+   {
+    "id": "chocolate-sweets",
+    "label": "Chocolate & Sweets"
+   },
+   {
+    "id": "rowing",
+    "label": "Rowing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "magna-carta",
+    "label": "Magna Carta"
+   },
+   {
+    "id": "the-titanic",
+    "label": "The Titanic"
+   },
+   {
+    "id": "the-tower-of-london",
+    "label": "The Tower of London"
+   }
+  ]
+ }
+}
