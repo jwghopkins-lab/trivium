@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-05",
+ "tiers": {
+  "broad": [
+   {
+    "id": "babies-toddlers",
+    "label": "Babies & Toddlers"
+   },
+   {
+    "id": "fashion-style",
+    "label": "Fashion & Style"
+   },
+   {
+    "id": "jobs-professions",
+    "label": "Jobs & Professions"
+   }
+  ],
+  "mid": [
+   {
+    "id": "musical-instruments",
+    "label": "Musical Instruments"
+   },
+   {
+    "id": "snooker",
+    "label": "Snooker"
+   },
+   {
+    "id": "video-games",
+    "label": "Video Games"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-rome",
+    "label": "Ancient Rome"
+   },
+   {
+    "id": "formula-1",
+    "label": "Formula 1"
+   },
+   {
+    "id": "greek-mythology",
+    "label": "Greek Mythology"
+   }
+  ]
+ }
+}
