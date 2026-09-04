@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-04",
+ "tiers": {
+  "broad": [
+   {
+    "id": "barbecues",
+    "label": "Barbecues"
+   },
+   {
+    "id": "christmas",
+    "label": "Christmas"
+   },
+   {
+    "id": "sunday-roast",
+    "label": "The Sunday Roast"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fossil-hunting",
+    "label": "Fossil Hunting"
+   },
+   {
+    "id": "pantomime",
+    "label": "Pantomime"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   }
+  ],
+  "niche": [
+   {
+    "id": "choral-music",
+    "label": "20th-Century English Choral Music"
+   },
+   {
+    "id": "the-domesday-book",
+    "label": "The Domesday Book"
+   },
+   {
+    "id": "the-great-plague",
+    "label": "The Great Plague"
+   }
+  ]
+ }
+}
