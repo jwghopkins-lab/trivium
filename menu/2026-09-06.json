@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-06",
+ "tiers": {
+  "broad": [
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "movies-tv",
+    "label": "Movies & TV"
+   },
+   {
+    "id": "music",
+    "label": "Music"
+   }
+  ],
+  "mid": [
+   {
+    "id": "1980s-pop-culture",
+    "label": "1980s Pop Culture"
+   },
+   {
+    "id": "disney",
+    "label": "Disney"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "chess",
+    "label": "Chess"
+   },
+   {
+    "id": "dinosaurs",
+    "label": "Dinosaurs"
+   },
+   {
+    "id": "mr-men",
+    "label": "Mr Men & Little Miss"
+   }
+  ]
+ }
+}
