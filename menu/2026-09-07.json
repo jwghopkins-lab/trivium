@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-07",
+ "tiers": {
+  "broad": [
+   {
+    "id": "capital-cities",
+    "label": "Capital Cities"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "parties-celebrations",
+    "label": "Parties & Celebrations"
+   }
+  ],
+  "mid": [
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "pottery-ceramics",
+    "label": "Pottery & Ceramics"
+   }
+  ],
+  "niche": [
+   {
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
+   },
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   }
+  ]
+ }
+}
