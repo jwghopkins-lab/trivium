@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-08",
+ "tiers": {
+  "broad": [
+   {
+    "id": "post-letters",
+    "label": "Post & Letters"
+   },
+   {
+    "id": "the-supermarket",
+    "label": "At the Supermarket"
+   },
+   {
+    "id": "things-that-beep",
+    "label": "Things That Beep"
+   }
+  ],
+  "mid": [
+   {
+    "id": "birds-birdwatching",
+    "label": "Birds & Birdwatching"
+   },
+   {
+    "id": "ocean-marine",
+    "label": "Ocean & Marine Life"
+   },
+   {
+    "id": "the-funfair",
+    "label": "At the Funfair"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-egypt",
+    "label": "Ancient Egypt"
+   },
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   }
+  ]
+ }
+}
