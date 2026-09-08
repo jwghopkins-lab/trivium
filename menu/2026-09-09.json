@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-09",
+ "tiers": {
+  "broad": [
+   {
+    "id": "animals-wildlife",
+    "label": "Animals & Wildlife"
+   },
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   }
+  ],
+  "mid": [
+   {
+    "id": "camping-outdoors",
+    "label": "Camping & the Outdoors"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   },
+   {
+    "id": "world-landmarks",
+    "label": "World Landmarks & Travel"
+   }
+  ],
+  "niche": [
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   },
+   {
+    "id": "the-tudors",
+    "label": "The Tudors"
+   }
+  ]
+ }
+}
