@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-10",
+ "tiers": {
+  "broad": [
+   {
+    "id": "cars-driving",
+    "label": "Cars & Driving"
+   },
+   {
+    "id": "money-banking",
+    "label": "Money & Banking"
+   },
+   {
+    "id": "time-clocks",
+    "label": "Time & Clocks"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bees-beekeeping",
+    "label": "Bees & Beekeeping"
+   },
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "wine-vineyards",
+    "label": "Wine & Vineyards"
+   }
+  ],
+  "niche": [
+   {
+    "id": "agatha-christie",
+    "label": "Agatha Christie"
+   },
+   {
+    "id": "aztecs-incas",
+    "label": "Aztecs & Incas"
+   },
+   {
+    "id": "king-arthur",
+    "label": "King Arthur & Camelot"
+   }
+  ]
+ }
+}
