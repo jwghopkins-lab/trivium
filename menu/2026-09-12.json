@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-12",
+ "tiers": {
+  "broad": [
+   {
+    "id": "hairdressers",
+    "label": "Hairdressers"
+   },
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "phones-and-apps",
+    "label": "Phones & Apps"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fishing",
+    "label": "Fishing"
+   },
+   {
+    "id": "ice-skating",
+    "label": "Ice Skating"
+   },
+   {
+    "id": "rowing",
+    "label": "Rowing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "the-blitz",
+    "label": "The Blitz"
+   },
+   {
+    "id": "the-great-plague",
+    "label": "The Great Plague"
+   },
+   {
+    "id": "the-tower-of-london",
+    "label": "The Tower of London"
+   }
+  ]
+ }
+}
