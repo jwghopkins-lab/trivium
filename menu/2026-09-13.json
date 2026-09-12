@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-13",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-seaside",
+    "label": "At the Seaside"
+   },
+   {
+    "id": "transport-travel",
+    "label": "Getting Around"
+   },
+   {
+    "id": "weather-seasons",
+    "label": "Weather & Seasons"
+   }
+  ],
+  "mid": [
+   {
+    "id": "chocolate-sweets",
+    "label": "Chocolate & Sweets"
+   },
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   },
+   {
+    "id": "photography",
+    "label": "Photography"
+   }
+  ],
+  "niche": [
+   {
+    "id": "feudal-japan",
+    "label": "Samurai & Feudal Japan"
+   },
+   {
+    "id": "norse-mythology",
+    "label": "Norse Mythology"
+   },
+   {
+    "id": "polar-exploration",
+    "label": "Polar Exploration"
+   }
+  ]
+ }
+}
