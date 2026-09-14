@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-15",
+ "tiers": {
+  "broad": [
+   {
+    "id": "hair-beauty",
+    "label": "Hair & Beauty"
+   },
+   {
+    "id": "laundry-cleaning",
+    "label": "Laundry & Cleaning"
+   },
+   {
+    "id": "markets-and-stalls",
+    "label": "Markets & Stalls"
+   }
+  ],
+  "mid": [
+   {
+    "id": "1980s-pop-culture",
+    "label": "1980s Pop Culture"
+   },
+   {
+    "id": "antiques-auctions",
+    "label": "Antiques & Auctions"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "dracula-gothic",
+    "label": "Dracula & Gothic Horror"
+   },
+   {
+    "id": "ghosts-hauntings",
+    "label": "Ghosts & Hauntings"
+   },
+   {
+    "id": "magna-carta",
+    "label": "Magna Carta"
+   }
+  ]
+ }
+}
