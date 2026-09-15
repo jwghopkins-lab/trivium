@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-16",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-doctors",
+    "label": "At the Doctors"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "music",
+    "label": "Music"
+   }
+  ],
+  "mid": [
+   {
+    "id": "architecture",
+    "label": "Architecture"
+   },
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "the-circus",
+    "label": "The Circus"
+   }
+  ],
+  "niche": [
+   {
+    "id": "doctor-who",
+    "label": "Doctor Who"
+   },
+   {
+    "id": "fairy-tales",
+    "label": "Fairy Tales"
+   },
+   {
+    "id": "lighthouses",
+    "label": "Lighthouses"
+   }
+  ]
+ }
+}
