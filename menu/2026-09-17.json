@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-17",
+ "tiers": {
+  "broad": [
+   {
+    "id": "fruit-veg",
+    "label": "Fruit & Veg"
+   },
+   {
+    "id": "in-the-bathroom",
+    "label": "In the Bathroom"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   }
+  ],
+  "mid": [
+   {
+    "id": "art-gallery",
+    "label": "At the Art Gallery"
+   },
+   {
+    "id": "maps-navigation",
+    "label": "Maps & Navigation"
+   },
+   {
+    "id": "world-landmarks",
+    "label": "World Landmarks & Travel"
+   }
+  ],
+  "niche": [
+   {
+    "id": "beatrix-potter",
+    "label": "Beatrix Potter"
+   },
+   {
+    "id": "dinosaurs",
+    "label": "Dinosaurs"
+   },
+   {
+    "id": "vikings",
+    "label": "Vikings"
+   }
+  ]
+ }
+}
