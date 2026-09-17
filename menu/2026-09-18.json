@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-18",
+ "tiers": {
+  "broad": [
+   {
+    "id": "halloween",
+    "label": "Halloween"
+   },
+   {
+    "id": "movies-tv",
+    "label": "Movies & TV"
+   },
+   {
+    "id": "the-office",
+    "label": "The Office"
+   }
+  ],
+  "mid": [
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "the-olympics",
+    "label": "The Olympics"
+   },
+   {
+    "id": "uk-sitcoms",
+    "label": "UK Sitcoms"
+   }
+  ],
+  "niche": [
+   {
+    "id": "chess",
+    "label": "Chess"
+   },
+   {
+    "id": "narnia",
+    "label": "Narnia"
+   },
+   {
+    "id": "the-wizard-of-oz",
+    "label": "The Wizard of Oz"
+   }
+  ]
+ }
+}
