@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-19",
+ "tiers": {
+  "broad": [
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   },
+   {
+    "id": "jobs-professions",
+    "label": "Jobs & Professions"
+   },
+   {
+    "id": "sunday-roast",
+    "label": "The Sunday Roast"
+   }
+  ],
+  "mid": [
+   {
+    "id": "horses-riding",
+    "label": "Horses & Riding"
+   },
+   {
+    "id": "sewing-knitting",
+    "label": "Sewing & Knitting"
+   },
+   {
+    "id": "the-funfair",
+    "label": "At the Funfair"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-egypt",
+    "label": "Ancient Egypt"
+   },
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   }
+  ]
+ }
+}
