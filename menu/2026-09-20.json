@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-20",
+ "tiers": {
+  "broad": [
+   {
+    "id": "parties-celebrations",
+    "label": "Parties & Celebrations"
+   },
+   {
+    "id": "rivers-lakes",
+    "label": "Rivers & Lakes"
+   },
+   {
+    "id": "sleep-and-dreams",
+    "label": "Sleep & Dreams"
+   }
+  ],
+  "mid": [
+   {
+    "id": "birds-birdwatching",
+    "label": "Birds & Birdwatching"
+   },
+   {
+    "id": "deserts",
+    "label": "Deserts"
+   },
+   {
+    "id": "video-games",
+    "label": "Video Games"
+   }
+  ],
+  "niche": [
+   {
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
+   },
+   {
+    "id": "stonehenge",
+    "label": "Stonehenge & Standing Stones"
+   },
+   {
+    "id": "treasure-island",
+    "label": "Treasure Island"
+   }
+  ]
+ }
+}
