@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-21",
+ "tiers": {
+  "broad": [
+   {
+    "id": "airports",
+    "label": "Airports"
+   },
+   {
+    "id": "cars-driving",
+    "label": "Cars & Driving"
+   },
+   {
+    "id": "time-clocks",
+    "label": "Time & Clocks"
+   }
+  ],
+  "mid": [
+   {
+    "id": "mountains-climbing",
+    "label": "Mountains & Climbing"
+   },
+   {
+    "id": "ocean-marine",
+    "label": "Ocean & Marine Life"
+   },
+   {
+    "id": "pantomime",
+    "label": "Pantomime"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ballet-dance",
+    "label": "Ballet & Dance"
+   },
+   {
+    "id": "dickens",
+    "label": "Dickens"
+   },
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   }
+  ]
+ }
+}
