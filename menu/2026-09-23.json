@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-23",
+ "tiers": {
+  "broad": [
+   {
+    "id": "capital-cities",
+    "label": "Capital Cities"
+   },
+   {
+    "id": "hairdressers",
+    "label": "Hairdressers"
+   },
+   {
+    "id": "phones-and-apps",
+    "label": "Phones & Apps"
+   }
+  ],
+  "mid": [
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "hot-air-balloons",
+    "label": "Hot Air Balloons"
+   },
+   {
+    "id": "whisky-distilling",
+    "label": "Whisky & Distilling"
+   }
+  ],
+  "niche": [
+   {
+    "id": "frankenstein",
+    "label": "Frankenstein"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "peter-pan",
+    "label": "Peter Pan"
+   }
+  ]
+ }
+}
