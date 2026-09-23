@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-24",
+ "tiers": {
+  "broad": [
+   {
+    "id": "ice-cream",
+    "label": "Ice Cream"
+   },
+   {
+    "id": "trains-railways",
+    "label": "Trains & Railways"
+   },
+   {
+    "id": "trees",
+    "label": "Trees"
+   }
+  ],
+  "mid": [
+   {
+    "id": "butterflies-moths",
+    "label": "Butterflies & Moths"
+   },
+   {
+    "id": "gemstones-jewellery",
+    "label": "Gemstones & Jewellery"
+   },
+   {
+    "id": "tea",
+    "label": "Tea"
+   }
+  ],
+  "niche": [
+   {
+    "id": "asterix",
+    "label": "Asterix"
+   },
+   {
+    "id": "church-organs",
+    "label": "Church Organs"
+   },
+   {
+    "id": "tanks-armour",
+    "label": "Tanks and Armour"
+   }
+  ]
+ }
+}
