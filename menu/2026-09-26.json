@@ -1,0 +1,47 @@
+{
+ "date": "2026-09-26",
+ "tiers": {
+  "broad": [
+   {
+    "id": "pets",
+    "label": "Pets & Petcare"
+   },
+   {
+    "id": "picnics",
+    "label": "Picnics"
+   },
+   {
+    "id": "swimming",
+    "label": "Swimming"
+   }
+  ],
+  "mid": [
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "rugby",
+    "label": "Rugby"
+   },
+   {
+    "id": "submarines",
+    "label": "Submarines"
+   }
+  ],
+  "niche": [
+   {
+    "id": "fairy-tales",
+    "label": "Fairy Tales"
+   },
+   {
+    "id": "julia-donaldson",
+    "label": "Julia Donaldson"
+   },
+   {
+    "id": "sherlock-holmes",
+    "label": "Sherlock Holmes"
+   }
+  ]
+ }
+}
