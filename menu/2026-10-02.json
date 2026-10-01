@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-02",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-vets",
+    "label": "At the Vet's"
+   },
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "the-opticians",
+    "label": "At the Opticians"
+   }
+  ],
+  "mid": [
+   {
+    "id": "aviation",
+    "label": "Aviation & Flight"
+   },
+   {
+    "id": "caravans",
+    "label": "Caravans & Camping Holidays"
+   },
+   {
+    "id": "volcanoes",
+    "label": "Volcanoes"
+   }
+  ],
+  "niche": [
+   {
+    "id": "canterbury-tales",
+    "label": "The Canterbury Tales"
+   },
+   {
+    "id": "indiana-jones",
+    "label": "Indiana Jones"
+   },
+   {
+    "id": "the-beatles",
+    "label": "The Beatles"
+   }
+  ]
+ }
+}
