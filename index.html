@@ -10,7 +10,7 @@
     --line: #C9CFC9; --accent: #2B52D8; --accent-soft: #DDE4FB;
     --cell: #FFFFFF; --cell-active: #2B52D8; --cell-word: #DDE4FB;
     --wrong: #C0392B; --wrong-soft: #F7DAD5; --good: #1E7B4F;
-    --t-a: #C64B33; --t-b: #B3268C; --t-c: #8A7B2B;
+    --t-a: #B67820; --t-b: #20B6AA; --t-c: #7820B6;
     --key: #E4E8E2; --key-ink: #1C2227;
     --key-face: #FFFFFF; --key-alt: #D3D8D1; --key-shadow: 0 1px 1px rgba(20,25,30,.10);
     --kb-plane: #D9DDD8;
@@ -22,7 +22,7 @@
       --line: #39424A; --accent: #6E8EF5; --accent-soft: #27335C;
       --cell: #232A31; --cell-active: #4E6FE3; --cell-word: #2B3860;
       --wrong: #E06A5B; --wrong-soft: #4A2622; --good: #4BBF87;
-      --t-a: #E07A5F; --t-b: #DD62BC; --t-c: #C4B454;
+      --t-a: #DD9C40; --t-b: #40DDD0; --t-c: #9C40DD;
       --key: #2A323A; --key-ink: #E7EBEE;
       --key-face: #333B43; --key-alt: #232A31; --key-shadow: none;
       --kb-plane: #10151A;
@@ -89,10 +89,17 @@
           border: 1px solid var(--line); border-radius: 3px; position: relative;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: calc(var(--cs) * .52); cursor: pointer; user-select: none;
-          /* faint per-topic tints, derived from the tier colors so they track the theme */
-          --tint-a: color-mix(in srgb, var(--t-a) 13%, var(--cell));
-          --tint-b: color-mix(in srgb, var(--t-b) 13%, var(--cell));
-          --tint-c: color-mix(in srgb, var(--t-c) 13%, var(--cell)); }
+          /* Faint per-topic tints, derived from the tier colors so they track the
+             theme. The three hues are ~140 deg apart on purpose: the old set
+             (red / magenta / olive) all sat in the warm half, and at 13% they
+             collapsed to within dE 6-8 of each other -- a player reported the
+             a and b tints as "identical", and a/c was in fact the closer pair.
+             Amber / teal / violet at 17% puts the worst pair at dE 14 (light)
+             and 17 (dark), while staying clear of the blue word highlight and
+             the red wrong-answer wash, and keeping >=8:1 text contrast. */
+          --tint-a: color-mix(in srgb, var(--t-a) 17%, var(--cell));
+          --tint-b: color-mix(in srgb, var(--t-b) 17%, var(--cell));
+          --tint-c: color-mix(in srgb, var(--t-c) 17%, var(--cell)); }
   .cell.void { background: transparent; border: none; cursor: default; }
   .cell .num { position: absolute; top: 1px; left: 3px; font-size: calc(var(--cs) * .24);
                font-weight: 600; color: var(--ink-soft); }
@@ -324,22 +331,52 @@ const LS = {
   get(k, d) { try { return JSON.parse(localStorage.getItem("trivium2." + k)) ?? d; } catch { return d; } },
   set(k, v) { localStorage.setItem("trivium2." + k, JSON.stringify(v)); },
 };
-const DAY = window.TRIVIUM_FORCE_DAY || (() => {
-  // preview builds may pin a date via TRIVIUM_FORCE_DAY; normally undefined
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
-         "-" + String(d.getDate()).padStart(2, "0");
-})();
+// The day is London's, because that is the date the release publishes under
+// (tools/release_staged.py). A device on another clock used to ask for a menu
+// that did not exist yet, or no longer led.
+function londonToday() {
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(new Date());
+  } catch {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+           "-" + String(d.getDate()).padStart(2, "0");
+  }
+}
+// preview builds may pin a date via TRIVIUM_FORCE_DAY; normally undefined
+const DAY = window.TRIVIUM_FORCE_DAY || londonToday();
+// Only the hosted site can be republished under a player's feet; the artifact
+// edition carries its days inline and is rebuilt as a whole.
+const HOSTED = !window.TRIVIUM_STATIC && !window.TRIVIUM_FORCE_DAY;
 
 // Data loader: the artifact edition inlines menus/puzzles into
 // window.TRIVIUM_STATIC (keyed by relative path); the hosted edition fetches.
-async function loadJson(path) {
+// `fresh` bypasses every cache on the way: a menu asked for just before the
+// release lands comes back 404, and GitHub Pages lets browsers and its CDN
+// keep that answer for up to ten minutes -- which is what made refreshing
+// look as if it did nothing.
+async function loadJson(path, fresh) {
   const inline = (window.TRIVIUM_STATIC || {})[path];
   if (inline) return inline;
-  const res = await fetch(path);
+  const res = fresh ? await fetch(`${path}?t=${Date.now()}`, { cache: "no-store" })
+                    : await fetch(path);
   if (!res.ok) throw new Error(String(res.status));
   return res.json();
 }
+
+// DAY is fixed when the page loads, so a tab left open overnight kept serving
+// yesterday until someone refreshed. Reload once London's date has moved on --
+// but never while a player is part-way through a puzzle they have started.
+function checkNewDay() {
+  if (!HOSTED || londonToday() === DAY) return;
+  const st = LS.get("state." + DAY, null);
+  if ($("s-game").classList.contains("on") && st && !st.done) return;
+  location.reload();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkNewDay(); });
+window.addEventListener("pageshow", checkNewDay);
+window.addEventListener("focus", checkNewDay);
+setInterval(checkNewDay, 60 * 1000);
 
 /* ---------- backend (Supabase PostgREST via fetch) ---------- */
 async function apiSubmit(row) {
@@ -457,6 +494,7 @@ $("namebtn").onclick = () => {
 let MENU = null;
 let picks = {};
 let shelvesOpen = 0;   // how many shelves were open last render, for the reveal animation
+let menuRetry = null;  // polls for a menu that was not published yet when the page opened
 async function enterPicker() {
   show("s-pick");
   $("hello").textContent = player().name;
@@ -464,13 +502,25 @@ async function enterPicker() {
   $("offline-banner").style.display = ONLINE ? "none" : "block";
   if (!MENU) {
     try {
-      MENU = await loadJson(`menu/${DAY}.json`);
+      MENU = await loadJson(`menu/${DAY}.json`, HOSTED);
     } catch (e) {
-      $("tiers").innerHTML = `<div class="banner">No puzzle menu published for ${DAY} yet.
-        The daily bake hasn't run for this date — check back later.</div>`;
+      // Shortly after midnight the new day can still be on its way. Wait for
+      // it here rather than leaving the player to guess when to refresh.
+      $("tiers").innerHTML = HOSTED
+        ? `<div class="banner">Today's puzzle is on its way — this page will open it
+             as soon as it's published.</div>`
+        : `<div class="banner">No puzzle menu published for ${DAY} yet.
+             The daily bake hasn't run for this date — check back later.</div>`;
+      if (HOSTED && !menuRetry) {
+        menuRetry = setInterval(() => {
+          if (!$("s-pick").classList.contains("on")) return;
+          enterPicker();
+        }, 30 * 1000);
+      }
       return;
     }
   }
+  if (menuRetry) { clearInterval(menuRetry); menuRetry = null; }
   picks = LS.get("picks." + DAY, {});
   const t = $("tiers");
   t.innerHTML = "";
