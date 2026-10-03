@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-04",
+ "tiers": {
+  "broad": [
+   {
+    "id": "buses-and-coaches",
+    "label": "Buses & Coaches"
+   },
+   {
+    "id": "keys-and-locks",
+    "label": "Keys & Locks"
+   },
+   {
+    "id": "takeaways",
+    "label": "Takeaways"
+   }
+  ],
+  "mid": [
+   {
+    "id": "architecture",
+    "label": "Architecture"
+   },
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "bell-ringing",
+    "label": "Bell Ringing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "feudal-japan",
+    "label": "Samurai & Feudal Japan"
+   },
+   {
+    "id": "formula-1",
+    "label": "Formula 1"
+   },
+   {
+    "id": "wild-west",
+    "label": "The Wild West"
+   }
+  ]
+ }
+}
