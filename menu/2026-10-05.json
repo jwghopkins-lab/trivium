@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-05",
+ "tiers": {
+  "broad": [
+   {
+    "id": "barbecues",
+    "label": "Barbecues"
+   },
+   {
+    "id": "birthdays",
+    "label": "Birthdays"
+   },
+   {
+    "id": "christmas",
+    "label": "Christmas"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fossil-hunting",
+    "label": "Fossil Hunting"
+   },
+   {
+    "id": "musical-instruments",
+    "label": "Musical Instruments"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   }
+  ],
+  "niche": [
+   {
+    "id": "choral-music",
+    "label": "20th-Century English Choral Music"
+   },
+   {
+    "id": "polar-exploration",
+    "label": "Polar Exploration"
+   },
+   {
+    "id": "the-domesday-book",
+    "label": "The Domesday Book"
+   }
+  ]
+ }
+}
