@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-06",
+ "tiers": {
+  "broad": [
+   {
+    "id": "babies-toddlers",
+    "label": "Babies & Toddlers"
+   },
+   {
+    "id": "fashion-style",
+    "label": "Fashion & Style"
+   },
+   {
+    "id": "weather-seasons",
+    "label": "Weather & Seasons"
+   }
+  ],
+  "mid": [
+   {
+    "id": "canals-narrowboats",
+    "label": "Canals & Narrowboats"
+   },
+   {
+    "id": "magic-illusion",
+    "label": "Magic & Illusion"
+   },
+   {
+    "id": "snooker",
+    "label": "Snooker"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-rome",
+    "label": "Ancient Rome"
+   },
+   {
+    "id": "greek-mythology",
+    "label": "Greek Mythology"
+   },
+   {
+    "id": "julia-donaldson",
+    "label": "Julia Donaldson"
+   }
+  ]
+ }
+}
