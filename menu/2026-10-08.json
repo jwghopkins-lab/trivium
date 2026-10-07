@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-08",
+ "tiers": {
+  "broad": [
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   },
+   {
+    "id": "music",
+    "label": "Music"
+   },
+   {
+    "id": "post-letters",
+    "label": "Post & Letters"
+   }
+  ],
+  "mid": [
+   {
+    "id": "caves-caving",
+    "label": "Caves & Caving"
+   },
+   {
+    "id": "pottery-ceramics",
+    "label": "Pottery & Ceramics"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "alice-wonderland",
+    "label": "Alice in Wonderland"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   },
+   {
+    "id": "the-hobbit",
+    "label": "The Hobbit"
+   }
+  ]
+ }
+}
