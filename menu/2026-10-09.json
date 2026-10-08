@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-09",
+ "tiers": {
+  "broad": [
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   },
+   {
+    "id": "things-that-beep",
+    "label": "Things That Beep"
+   },
+   {
+    "id": "tools-diy",
+    "label": "Tools & DIY"
+   }
+  ],
+  "mid": [
+   {
+    "id": "cycling",
+    "label": "Cycling"
+   },
+   {
+    "id": "deserts",
+    "label": "Deserts"
+   },
+   {
+    "id": "windmills",
+    "label": "Windmills & Watermills"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ghosts-hauntings",
+    "label": "Ghosts & Hauntings"
+   },
+   {
+    "id": "the-blitz",
+    "label": "The Blitz"
+   },
+   {
+    "id": "the-suffragettes",
+    "label": "The Suffragettes"
+   }
+  ]
+ }
+}
