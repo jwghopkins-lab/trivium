@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-11",
+ "tiers": {
+  "broad": [
+   {
+    "id": "money-banking",
+    "label": "Money & Banking"
+   },
+   {
+    "id": "rubbish-recycling",
+    "label": "Rubbish & Recycling"
+   },
+   {
+    "id": "the-office",
+    "label": "The Office"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bees-beekeeping",
+    "label": "Bees & Beekeeping"
+   },
+   {
+    "id": "mushrooms-foraging",
+    "label": "Mushrooms & Foraging"
+   },
+   {
+    "id": "wine-vineyards",
+    "label": "Wine & Vineyards"
+   }
+  ],
+  "niche": [
+   {
+    "id": "agatha-christie",
+    "label": "Agatha Christie"
+   },
+   {
+    "id": "aztecs-incas",
+    "label": "Aztecs & Incas"
+   },
+   {
+    "id": "king-arthur",
+    "label": "King Arthur & Camelot"
+   }
+  ]
+ }
+}
