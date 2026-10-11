@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-12",
+ "tiers": {
+  "broad": [
+   {
+    "id": "emergency-services",
+    "label": "Emergency Services"
+   },
+   {
+    "id": "laundry-cleaning",
+    "label": "Laundry & Cleaning"
+   },
+   {
+    "id": "the-human-body",
+    "label": "The Human Body"
+   }
+  ],
+  "mid": [
+   {
+    "id": "photography",
+    "label": "Photography"
+   },
+   {
+    "id": "sailing-boats",
+    "label": "Sailing & Boats"
+   },
+   {
+    "id": "uk-sitcoms",
+    "label": "UK Sitcoms"
+   }
+  ],
+  "niche": [
+   {
+    "id": "peter-pan",
+    "label": "Peter Pan"
+   },
+   {
+    "id": "the-titanic",
+    "label": "The Titanic"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
