@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-13",
+ "tiers": {
+  "broad": [
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "swimming",
+    "label": "Swimming"
+   },
+   {
+    "id": "the-opticians",
+    "label": "At the Opticians"
+   }
+  ],
+  "mid": [
+   {
+    "id": "fishing",
+    "label": "Fishing"
+   },
+   {
+    "id": "ice-skating",
+    "label": "Ice Skating"
+   },
+   {
+    "id": "rowing",
+    "label": "Rowing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   },
+   {
+    "id": "the-great-plague",
+    "label": "The Great Plague"
+   },
+   {
+    "id": "the-norman-conquest",
+    "label": "1066 and the Norman Conquest"
+   }
+  ]
+ }
+}
