@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-14",
+ "tiers": {
+  "broad": [
+   {
+    "id": "barbecues",
+    "label": "Barbecues"
+   },
+   {
+    "id": "fashion-style",
+    "label": "Fashion & Style"
+   },
+   {
+    "id": "the-gym",
+    "label": "The Gym & Keeping Fit"
+   }
+  ],
+  "mid": [
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   },
+   {
+    "id": "gemstones-jewellery",
+    "label": "Gemstones & Jewellery"
+   },
+   {
+    "id": "rugby",
+    "label": "Rugby"
+   }
+  ],
+  "niche": [
+   {
+    "id": "asterix",
+    "label": "Asterix"
+   },
+   {
+    "id": "jane-austen",
+    "label": "Jane Austen"
+   },
+   {
+    "id": "norse-mythology",
+    "label": "Norse Mythology"
+   }
+  ]
+ }
+}
