@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-15",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-vets",
+    "label": "At the Vet's"
+   },
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "picnics",
+    "label": "Picnics"
+   }
+  ],
+  "mid": [
+   {
+    "id": "blacksmithing",
+    "label": "The Blacksmith's Forge"
+   },
+   {
+    "id": "coffee-cafes",
+    "label": "Coffee & Caf\u00e9s"
+   },
+   {
+    "id": "cricket",
+    "label": "Cricket"
+   }
+  ],
+  "niche": [
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "the-brontes",
+    "label": "The Brontes"
+   },
+   {
+    "id": "the-domesday-book",
+    "label": "The Domesday Book"
+   }
+  ]
+ }
+}
