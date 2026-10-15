@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-16",
+ "tiers": {
+  "broad": [
+   {
+    "id": "hair-beauty",
+    "label": "Hair & Beauty"
+   },
+   {
+    "id": "markets-and-stalls",
+    "label": "Markets & Stalls"
+   },
+   {
+    "id": "the-village-fete",
+    "label": "The Village Fete"
+   }
+  ],
+  "mid": [
+   {
+    "id": "antiques-auctions",
+    "label": "Antiques & Auctions"
+   },
+   {
+    "id": "sewing-knitting",
+    "label": "Sewing & Knitting"
+   },
+   {
+    "id": "space-astronomy",
+    "label": "Space & Astronomy"
+   }
+  ],
+  "niche": [
+   {
+    "id": "lighthouses",
+    "label": "Lighthouses"
+   },
+   {
+    "id": "magna-carta",
+    "label": "Magna Carta"
+   },
+   {
+    "id": "narnia",
+    "label": "Narnia"
+   }
+  ]
+ }
+}
