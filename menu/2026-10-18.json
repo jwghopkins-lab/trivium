@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-18",
+ "tiers": {
+  "broad": [
+   {
+    "id": "fruit-veg",
+    "label": "Fruit & Veg"
+   },
+   {
+    "id": "sandwiches",
+    "label": "Sandwiches"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   }
+  ],
+  "mid": [
+   {
+    "id": "art-gallery",
+    "label": "At the Art Gallery"
+   },
+   {
+    "id": "maps-navigation",
+    "label": "Maps & Navigation"
+   },
+   {
+    "id": "world-landmarks",
+    "label": "World Landmarks & Travel"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ancient-egypt",
+    "label": "Ancient Egypt"
+   },
+   {
+    "id": "canterbury-tales",
+    "label": "The Canterbury Tales"
+   },
+   {
+    "id": "dinosaurs",
+    "label": "Dinosaurs"
+   }
+  ]
+ }
+}
