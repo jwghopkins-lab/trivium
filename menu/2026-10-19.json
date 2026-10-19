@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-19",
+ "tiers": {
+  "broad": [
+   {
+    "id": "ice-cream",
+    "label": "Ice Cream"
+   },
+   {
+    "id": "money-banking",
+    "label": "Money & Banking"
+   },
+   {
+    "id": "movies-tv",
+    "label": "Movies & TV"
+   }
+  ],
+  "mid": [
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "fossil-hunting",
+    "label": "Fossil Hunting"
+   },
+   {
+    "id": "the-olympics",
+    "label": "The Olympics"
+   }
+  ],
+  "niche": [
+   {
+    "id": "aztecs-incas",
+    "label": "Aztecs & Incas"
+   },
+   {
+    "id": "chess",
+    "label": "Chess"
+   },
+   {
+    "id": "the-wizard-of-oz",
+    "label": "The Wizard of Oz"
+   }
+  ]
+ }
+}
