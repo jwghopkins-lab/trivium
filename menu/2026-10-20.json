@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-20",
+ "tiers": {
+  "broad": [
+   {
+    "id": "jobs-professions",
+    "label": "Jobs & Professions"
+   },
+   {
+    "id": "sunday-roast",
+    "label": "The Sunday Roast"
+   },
+   {
+    "id": "the-garage",
+    "label": "The Garage"
+   }
+  ],
+  "mid": [
+   {
+    "id": "horses-riding",
+    "label": "Horses & Riding"
+   },
+   {
+    "id": "taylor-swift",
+    "label": "Taylor Swift"
+   },
+   {
+    "id": "the-funfair",
+    "label": "At the Funfair"
+   }
+  ],
+  "niche": [
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "james-bond",
+    "label": "James Bond"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
