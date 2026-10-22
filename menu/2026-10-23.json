@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-23",
+ "tiers": {
+  "broad": [
+   {
+    "id": "animals-wildlife",
+    "label": "Animals & Wildlife"
+   },
+   {
+    "id": "hats",
+    "label": "Hats & Headwear"
+   },
+   {
+    "id": "shoes-footwear",
+    "label": "Shoes & Footwear"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bridges",
+    "label": "Bridges"
+   },
+   {
+    "id": "cycling",
+    "label": "Cycling"
+   },
+   {
+    "id": "submarines",
+    "label": "Submarines"
+   }
+  ],
+  "niche": [
+   {
+    "id": "mr-men",
+    "label": "Mr Men & Little Miss"
+   },
+   {
+    "id": "pirates",
+    "label": "Pirates & the High Seas"
+   },
+   {
+    "id": "the-tower-of-london",
+    "label": "The Tower of London"
+   }
+  ]
+ }
+}
