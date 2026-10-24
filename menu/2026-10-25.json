@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-25",
+ "tiers": {
+  "broad": [
+   {
+    "id": "hair-beauty",
+    "label": "Hair & Beauty"
+   },
+   {
+    "id": "trains-railways",
+    "label": "Trains & Railways"
+   },
+   {
+    "id": "trees",
+    "label": "Trees"
+   }
+  ],
+  "mid": [
+   {
+    "id": "butterflies-moths",
+    "label": "Butterflies & Moths"
+   },
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "tea",
+    "label": "Tea"
+   }
+  ],
+  "niche": [
+   {
+    "id": "church-organs",
+    "label": "Church Organs"
+   },
+   {
+    "id": "frankenstein",
+    "label": "Frankenstein"
+   },
+   {
+    "id": "tanks-armour",
+    "label": "Tanks and Armour"
+   }
+  ]
+ }
+}
