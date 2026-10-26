@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-26",
+ "tiers": {
+  "broad": [
+   {
+    "id": "moving-house",
+    "label": "Moving House"
+   },
+   {
+    "id": "newspapers",
+    "label": "Newspapers"
+   },
+   {
+    "id": "the-playground",
+    "label": "The Playground"
+   }
+  ],
+  "mid": [
+   {
+    "id": "antiques-auctions",
+    "label": "Antiques & Auctions"
+   },
+   {
+    "id": "the-allotment",
+    "label": "The Allotment"
+   },
+   {
+    "id": "the-lake-district",
+    "label": "The Lake District"
+   }
+  ],
+  "niche": [
+   {
+    "id": "asterix",
+    "label": "Asterix"
+   },
+   {
+    "id": "gilbert-and-sullivan",
+    "label": "Gilbert & Sullivan"
+   },
+   {
+    "id": "shakespeare",
+    "label": "Shakespeare"
+   }
+  ]
+ }
+}
