@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-27",
+ "tiers": {
+  "broad": [
+   {
+    "id": "motorway-services",
+    "label": "Motorways & Service Stations"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   },
+   {
+    "id": "the-launderette",
+    "label": "The Launderette"
+   }
+  ],
+  "mid": [
+   {
+    "id": "baking",
+    "label": "Baking & Cakes"
+   },
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   }
+  ],
+  "niche": [
+   {
+    "id": "fairy-tales",
+    "label": "Fairy Tales"
+   },
+   {
+    "id": "medieval-castles",
+    "label": "Castles & Medieval Life"
+   },
+   {
+    "id": "sherlock-holmes",
+    "label": "Sherlock Holmes"
+   }
+  ]
+ }
+}
