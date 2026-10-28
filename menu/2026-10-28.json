@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-28",
+ "tiers": {
+  "broad": [
+   {
+    "id": "picnics",
+    "label": "Picnics"
+   },
+   {
+    "id": "school-days",
+    "label": "School Days"
+   },
+   {
+    "id": "sunday-roast",
+    "label": "The Sunday Roast"
+   }
+  ],
+  "mid": [
+   {
+    "id": "horses-riding",
+    "label": "Horses & Riding"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   },
+   {
+    "id": "sailing-boats",
+    "label": "Sailing & Boats"
+   }
+  ],
+  "niche": [
+   {
+    "id": "harry-potter",
+    "label": "Harry Potter"
+   },
+   {
+    "id": "paddington",
+    "label": "Paddington Bear"
+   },
+   {
+    "id": "the-blitz",
+    "label": "The Blitz"
+   }
+  ]
+ }
+}
