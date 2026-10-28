@@ -80,6 +80,12 @@
   .btn.primary { background: var(--accent); color: #fff; }
   .btn.primary:disabled { opacity: .45; cursor: default; }
   .btn.ghost { background: var(--key); color: var(--key-ink); }
+  .archrow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+             border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+             border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: .86rem; cursor: pointer; }
+  .archrow .when { font-weight: 600; flex: 1; }
+  .archrow .got { font-size: .76rem; color: var(--ink-soft); }
+  .archrow.full .got { color: var(--good); }
   .chips { display: flex; gap: 6px; padding: 6px 0 8px; flex-wrap: wrap; align-items: center; }
   .chip { font-size: .72rem; font-weight: 600; letter-spacing: .02em;
           padding: 3px 10px; border-radius: 999px; color: #fff; }
@@ -250,12 +256,32 @@
     Leaderboard offline — no backend configured. You can still play; see SETUP.md.</div>
   <div class="card2">
     <h2>Pick a topic from each shelf</h2>
-    <p>Your three topics make today's puzzle — and you're ranked against
+    <p id="pickblurb">Your three topics make today's puzzle — and you're ranked against
        <b>everyone playing today</b>, whatever they picked. Choice locks when you
        start solving.</p>
     <div id="tiers"></div>
     <div style="height:12px"></div>
     <button class="btn primary" id="playbtn" disabled>Make my puzzle</button>
+    <div id="archlinks" hidden>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="archbtn">Puzzle archive</button>
+    </div>
+  </div>
+</div>
+
+<!-- Screen 2b: the archive — every released day, ticked off as you play -->
+<div class="screen" id="s-arch">
+  <header><div><div class="wordmark">TRIVI<span>UM</span></div>
+    <div class="tagline">Puzzle archive</div></div></header>
+  <div class="card2">
+    <h2>Every puzzle so far</h2>
+    <p>Pick any past day and play any combination of its topics. Puzzles you've
+       finished — today's or the archive's — are ticked off. Archive solves aren't
+       ranked.</p>
+    <button class="btn primary" id="randbtn">Random puzzle I haven't played</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="todaybtn">Today's puzzle</button>
+    <div id="archlist"></div>
   </div>
 </div>
 
@@ -343,11 +369,27 @@ function londonToday() {
            "-" + String(d.getDate()).padStart(2, "0");
   }
 }
+// ARCHIVE (user, 28 Oct): the game stopped being authored daily, so every day
+// already released stays playable. ?day=YYYY-MM-DD reopens that day's picker
+// (its menu and puzzles are still on the site); ?archive lists the days. An
+// archive solve is keyed by day AND combo, so one past day can be played once
+// per topic combination, and it never reaches the daily results table: the
+// board stays a record of people solving on the day.
+const FIRST_DAY = "2026-08-01";
+const ARCHIVE_OK = !window.TRIVIUM_STATIC && !window.TRIVIUM_FORCE_DAY;
+const QS = new URLSearchParams(location.search);
+const ARCHIVE_DAY = (() => {
+  const d = QS.get("day");
+  return ARCHIVE_OK && /^\d{4}-\d{2}-\d{2}$/.test(d || "") &&
+    d >= FIRST_DAY && d < londonToday() ? d : null;
+})();
+const ARCHIVE = !!ARCHIVE_DAY;
 // preview builds may pin a date via TRIVIUM_FORCE_DAY; normally undefined
-const DAY = window.TRIVIUM_FORCE_DAY || londonToday();
+const DAY = window.TRIVIUM_FORCE_DAY || ARCHIVE_DAY || londonToday();
 // Only the hosted site can be republished under a player's feet; the artifact
-// edition carries its days inline and is rebuilt as a whole.
-const HOSTED = !window.TRIVIUM_STATIC && !window.TRIVIUM_FORCE_DAY;
+// edition carries its days inline and is rebuilt as a whole. An archive day is
+// fixed, so it neither waits for a release nor reloads at midnight.
+const HOSTED = !window.TRIVIUM_STATIC && !window.TRIVIUM_FORCE_DAY && !ARCHIVE;
 
 // Data loader: the artifact edition inlines menus/puzzles into
 // window.TRIVIUM_STATIC (keyed by relative path); the hosted edition fetches.
@@ -470,7 +512,8 @@ function logEvent(kind, detail) {
                "Content-Type": "application/json" },
     body: JSON.stringify({ player_id: deviceId(), player_name: (player() || {}).name || "",
                            day: DAY, combo_key: (PZ && PZ.combo_key) || "",
-                           kind, detail: detail || {} }),
+                           kind, detail: ARCHIVE ? { ...(detail || {}), archive: true }
+                                                 : detail || {} }),
   }).then((r) => r.ok).catch(() => false);
 }
 
@@ -479,6 +522,90 @@ function show(id) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id));
 }
 function player() { return LS.get("player", null); }
+function picksKey() { return (ARCHIVE ? "arch-picks." : "picks.") + DAY; }
+function stateKey() { return ARCHIVE ? `arch.${DAY}.${comboKey()}` : "state." + DAY; }
+
+/* ---------- archive ---------- */
+// "day#combo" for every puzzle this player has finished: daily solves from the
+// results table (so plays from before the archive existed count), plus this
+// device's own records -- archive solves, and daily solves made offline.
+async function playedSet() {
+  const out = new Set(LS.get("archdone", []));
+  for (let i = 0; i < localStorage.length; i++) {
+    const m = /^trivium2\.state\.(\d{4}-\d{2}-\d{2})$/.exec(localStorage.key(i) || "");
+    if (!m || !(LS.get("state." + m[1], {}) || {}).done) continue;
+    const pk = LS.get("picks." + m[1], {});
+    if (pk.broad && pk.mid && pk.niche)
+      out.add(m[1] + "#" + [pk.broad, pk.mid, pk.niche].sort().join("|"));
+  }
+  if (ONLINE && player()) {
+    try {
+      const q = `${CFG.SUPABASE_URL}/rest/v1/results` +
+        `?player_name=eq.${encodeURIComponent(player().name)}&select=day,combo_key&limit=5000`;
+      const res = await fetch(q, { headers: { apikey: CFG.SUPABASE_ANON_KEY,
+                                              Authorization: `Bearer ${CFG.SUPABASE_ANON_KEY}` } });
+      if (res.ok) (await res.json()).forEach((r) => out.add(r.day + "#" + r.combo_key));
+    } catch { /* offline: the device's own record still ticks */ }
+  }
+  return out;
+}
+function archiveDays() {
+  const days = [];
+  for (let d = dayShift(londonToday(), -1); d >= FIRST_DAY; d = dayShift(d, -1)) days.push(d);
+  return days;
+}
+function niceDay(d) {
+  return new Date(d + "T12:00:00").toLocaleDateString("en-GB",
+    { weekday: "short", day: "numeric", month: "short" });
+}
+function allCombos(menu) {
+  const out = [];
+  for (const a of menu.tiers.broad) for (const b of menu.tiers.mid) for (const c of menu.tiers.niche)
+    out.push([a.id, b.id, c.id].sort().join("|"));
+  return out;
+}
+async function enterArchive() {
+  show("s-arch");
+  const list = $("archlist");
+  list.innerHTML = `<div class="note">Loading…</div>`;
+  const played = await playedSet();
+  const count = {};
+  played.forEach((k) => { const d = k.split("#")[0]; count[d] = (count[d] || 0) + 1; });
+  list.innerHTML = "";
+  for (const d of archiveDays()) {
+    const b = document.createElement("button");
+    b.className = "archrow" + (count[d] ? " full" : "");
+    b.innerHTML = `<span class="when">${niceDay(d)}</span>` +
+      `<span class="got">${count[d] ? `✓ ${count[d]} played` : "not played"}</span>`;
+    b.onclick = () => { location.href = "?day=" + d; };
+    list.appendChild(b);
+  }
+}
+// A random day, then a random unplayed combo within it. The day's menu has to
+// be fetched to know its combos, so try a few days before giving up.
+async function randomUnplayed() {
+  $("randbtn").disabled = true;
+  const played = await playedSet();
+  const days = archiveDays();
+  for (let tries = 0; tries < 12 && days.length; tries++) {
+    const d = days.splice(Math.floor(Math.random() * days.length), 1)[0];
+    let menu;
+    try { menu = await loadJson(`menu/${d}.json`); } catch { continue; }
+    const left = allCombos(menu).filter((c) => !played.has(d + "#" + c));
+    if (!left.length) continue;
+    const [x, y, z] = left[Math.floor(Math.random() * left.length)].split("|");
+    const tierOf = (id) => TIERS.find((t) => menu.tiers[t].some((tp) => tp.id === id));
+    const pk = {}; [x, y, z].forEach((id) => { pk[tierOf(id)] = id; });
+    LS.set("arch-picks." + d, pk);
+    location.href = `?day=${d}&play=1`;
+    return;
+  }
+  $("randbtn").disabled = false;
+  toast("You've played everything I tried — pick a day from the list");
+}
+$("archbtn").onclick = () => { location.href = "?archive"; };
+$("randbtn").onclick = randomUnplayed;
+$("todaybtn").onclick = () => { location.href = location.pathname; };
 
 /* setup */
 $("namein").oninput = () => { $("namebtn").disabled = $("namein").value.trim().length < 2; };
@@ -487,7 +614,7 @@ $("namebtn").onclick = () => {
   if (name.length < 2) return;
   LS.set("player", { id: deviceId(), name });
   logEvent("name", {});
-  enterPicker();
+  if (ARCHIVE_OK && QS.has("archive")) enterArchive(); else enterPicker();
 };
 
 /* picker */
@@ -498,7 +625,11 @@ let menuRetry = null;  // polls for a menu that was not published yet when the p
 async function enterPicker() {
   show("s-pick");
   $("hello").textContent = player().name;
-  $("pickdate").textContent = DAY;
+  $("pickdate").textContent = ARCHIVE ? `Archive · ${niceDay(DAY)}` : DAY;
+  $("archlinks").hidden = !ARCHIVE_OK;
+  $("archbtn").textContent = ARCHIVE ? "← Back to the archive" : "Puzzle archive";
+  if (ARCHIVE) $("pickblurb").textContent = `Any combination from ${niceDay(DAY)}. ` +
+    "Archive puzzles aren't ranked — play as many as you like.";
   $("offline-banner").style.display = ONLINE ? "none" : "block";
   if (!MENU) {
     try {
@@ -521,14 +652,14 @@ async function enterPicker() {
     }
   }
   if (menuRetry) { clearInterval(menuRetry); menuRetry = null; }
-  picks = LS.get("picks." + DAY, {});
+  picks = LS.get(picksKey(), {});
   const t = $("tiers");
   t.innerHTML = "";
   // A shelf is open once every shelf above it has a pick. `picks[tier]` keeps
   // an existing choice visible for players who picked before this shipped, and
   // a started puzzle opens everything (it is locked anyway). Derived, never
-  // stored, so a reload lands in exactly the right state.
-  const started = !!LS.get("state." + DAY, null);
+  // stored, so a reload lands in exactly the right state. Archive days never lock.
+  const started = !ARCHIVE && !!LS.get("state." + DAY, null);
   const isOpen = (tier) => tier === "broad" || started || !!picks[tier] ||
     TIERS.slice(0, TIERS.indexOf(tier)).every((t) => picks[t]);
   const openNow = TIERS.filter(isOpen).length;
@@ -548,17 +679,27 @@ async function enterPicker() {
       b.disabled = !open;
       b.onclick = () => {
         if (!open) return;
-        if (LS.get("state." + DAY, null)) { toast("Today's choice is locked — you already started"); return; }
+        if (started) { toast("Today's choice is locked — you already started"); return; }
         picks[tier] = topic.id;
-        LS.set("picks." + DAY, picks);
+        LS.set(picksKey(), picks);
         enterPickerRefresh();
       };
       grid.appendChild(b);
     }
     g.appendChild(grid); t.appendChild(g);
   }
-  $("playbtn").disabled = !(picks.broad && picks.mid && picks.niche);
+  const full = !!(picks.broad && picks.mid && picks.niche);
+  $("playbtn").disabled = !full;
   shelvesOpen = openNow;
+  if (ARCHIVE && full) {
+    const want = DAY + "#" + comboKey();
+    const own = (LS.get(stateKey(), {}) || {});
+    $("playbtn").textContent = own.done ? "Played ✓ — view it" : own.secs ? "Carry on" : "Make my puzzle";
+    playedSet().then((s) => {
+      if (!own.done && s.has(want) && DAY + "#" + comboKey() === want)
+        $("playbtn").textContent = "Played on the day ✓ — play again";
+    });
+  }
 }
 function enterPickerRefresh() { enterPicker(); }
 $("playbtn").onclick = () => loadPuzzle();
@@ -583,7 +724,7 @@ async function loadPuzzle() {
   }
   PZ = pz;
   show("s-game");
-  $("gamedate").textContent = `${DAY} · today's puzzle`;
+  $("gamedate").textContent = ARCHIVE ? `Archive · ${niceDay(DAY)}` : `${DAY} · today's puzzle`;
   render();
   maybeShowKbHint();
   const st0 = puzzleState();
@@ -601,10 +742,10 @@ function deobf(pz) {
   return out.split("\n");
 }
 function puzzleState() {
-  return LS.get("state." + DAY,
+  return LS.get(stateKey(),
     { fill: {}, secs: 0, assisted: false, done: false, checked: [], hints: 0, submitted: false });
 }
-function saveState(st) { LS.set("state." + DAY, st); }
+function saveState(st) { LS.set(stateKey(), st); }
 
 function buildModel(pz) {
   const sol = deobf(pz);
@@ -1064,6 +1205,13 @@ $("lbbtn").onclick = () => showDone(false, true);
 async function submitResult(st) {
   if (st.submitted) return;
   st.submitted = true; saveState(st);
+  if (ARCHIVE) {
+    const done = new Set(LS.get("archdone", []));
+    done.add(DAY + "#" + PZ.combo_key);
+    LS.set("archdone", [...done]);
+    logEvent("archive_done", { t: st.secs, hints: st.hints || 0 });
+    return;
+  }
   if (!ONLINE) return;
   try {
     await apiSubmit({ player_id: player().id, player_name: player().name, day: DAY,
@@ -1081,7 +1229,37 @@ function localStreak() {
   while ((LS.get("state." + d, {}) || {}).done) { streak++; d = dayShift(d, -1); }
   return Math.max(1, streak);
 }
+// Archive finish: no ranking and no streak, but that day's real board is shown
+// so the solver can see how their time would have stood.
+async function showArchiveDone() {
+  const st = puzzleState();
+  if (st.done && !st.submitted) await submitResult(st);
+  let rows = [];
+  if (ONLINE) { try { rows = await apiBoard(DAY); } catch { rows = []; } }
+  rows = rows.filter((r) => !r.assisted).sort((a, b) => a.seconds - b.seconds);
+  const faster = rows.filter((r) => Number(r.seconds) < st.secs).length;
+  const board = rows.map((r, i) =>
+    `<div class="lbrow"><span class="n">${i + 1}.</span>` +
+    `<span>${escapeHtml(String(r.player_name))}</span>` +
+    `<span class="t">${fmt(Number(r.seconds) || 0)}</span></div>`).join("");
+  $("modalcard").innerHTML =
+    (st.done ? `<h2>Solved!</h2><div class="big">${fmt(st.secs)}</div>
+       ${rows.length ? `<div class="rank">That would have been <b>${ord(faster + 1)}</b>
+         of ${rows.length + 1} on ${niceDay(DAY)}</div>` : ""}
+       ${st.hints ? `<div class="sub">Includes ${st.hints} hint${st.hints === 1 ? "" : "s"} (+${fmt(st.hints * 20)})</div>` : ""}`
+      : `<h2>${niceDay(DAY)}</h2><div class="sub">Archive puzzle — not ranked</div>`) +
+    `<div class="lb"><h3>The board on ${niceDay(DAY)}</h3>
+       ${board || "<div class='sub'>Nobody posted a time that day.</div>"}</div>
+     <div class="btnrow">
+       <button class="btn primary" id="nextarch">Another puzzle</button>
+       <button class="btn ghost" id="closebtn">Close</button>
+     </div>`;
+  $("modal").classList.add("show");
+  $("closebtn").onclick = () => $("modal").classList.remove("show");
+  $("nextarch").onclick = () => { location.href = "?archive"; };
+}
 async function showDone(justFinished, lbOnly) {
+  if (ARCHIVE) return showArchiveDone();
   const st = puzzleState();
   if (st.done && !st.submitted) await submitResult(st);
   const ranked = st.done && !st.assisted;
@@ -1178,6 +1356,8 @@ async function showDone(justFinished, lbOnly) {
        ${st.done ? `<button class="btn primary" id="sharebtn">Copy result</button>` : ""}
        <button class="btn ghost" id="closebtn">Close</button>
      </div>
+     ${st.done && ARCHIVE_OK ? `<div class="btnrow"><button class="btn ghost" id="toarch">
+       Play more in the archive</button></div>` : ""}
      <div class="note"><b>How the score works.</b> Three things count: today's time
      (the biggest part), your daily streak, and your average over the last 7 days.
      Your time is just your time on the clock — the fastest solver today sets the mark
@@ -1187,6 +1367,7 @@ async function showDone(justFinished, lbOnly) {
      topics. Times are self-reported by the app (test build).</div>`;
   $("modal").classList.add("show");
   $("closebtn").onclick = () => { $("modal").classList.remove("show"); maybeAskTopics(); };
+  if ($("toarch")) $("toarch").onclick = () => { location.href = "?archive"; };
   const sb = $("sharebtn");
   if (sb) sb.onclick = () => {
     (navigator.clipboard ? navigator.clipboard.writeText(share) : Promise.reject())
@@ -1322,8 +1503,16 @@ window.addEventListener("resize", () => {
 
 /* ---- boot ---- */
 (async function boot() {
-  logEvent("load", { named: !!player(), started: !!LS.get("state." + DAY, null) });
+  logEvent("load", { named: !!player(), started: !!LS.get("state." + DAY, null),
+                     ...(ARCHIVE_OK && QS.has("archive") ? { archive_list: true } : {}) });
   if (!player()) { show("s-setup"); return; }
+  if (ARCHIVE_OK && QS.has("archive")) { enterArchive(); return; }
+  if (ARCHIVE) {
+    picks = LS.get(picksKey(), {});
+    if (QS.get("play") === "1" && picks.broad && picks.mid && picks.niche) await loadPuzzle();
+    else enterPicker();
+    return;
+  }
   const pk = LS.get("picks." + DAY, {});
   const started = LS.get("state." + DAY, null);
   if (pk.broad && pk.mid && pk.niche && started) {
