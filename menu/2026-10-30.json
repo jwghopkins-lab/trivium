@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-30",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-seaside",
+    "label": "At the Seaside"
+   },
+   {
+    "id": "ice-cream",
+    "label": "Ice Cream"
+   },
+   {
+    "id": "pets",
+    "label": "Pets & Petcare"
+   }
+  ],
+  "mid": [
+   {
+    "id": "canals-narrowboats",
+    "label": "Canals & Narrowboats"
+   },
+   {
+    "id": "cricket",
+    "label": "Cricket"
+   },
+   {
+    "id": "fireworks-bonfire-night",
+    "label": "Fireworks & Bonfire Night"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ballet-dance",
+    "label": "Ballet & Dance"
+   },
+   {
+    "id": "doctor-who",
+    "label": "Doctor Who"
+   },
+   {
+    "id": "vikings",
+    "label": "Vikings"
+   }
+  ]
+ }
+}
