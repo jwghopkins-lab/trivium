@@ -1,0 +1,47 @@
+{
+ "date": "2026-10-31",
+ "tiers": {
+  "broad": [
+   {
+    "id": "animals-wildlife",
+    "label": "Animals & Wildlife"
+   },
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   },
+   {
+    "id": "in-the-bathroom",
+    "label": "In the Bathroom"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bees-beekeeping",
+    "label": "Bees & Beekeeping"
+   },
+   {
+    "id": "birds-birdwatching",
+    "label": "Birds & Birdwatching"
+   },
+   {
+    "id": "cheese",
+    "label": "Cheese"
+   }
+  ],
+  "niche": [
+   {
+    "id": "norse-mythology",
+    "label": "Norse Mythology"
+   },
+   {
+    "id": "robin-hood",
+    "label": "Robin Hood"
+   },
+   {
+    "id": "wild-west",
+    "label": "The Wild West"
+   }
+  ]
+ }
+}
