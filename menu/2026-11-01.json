@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-01",
+ "tiers": {
+  "broad": [
+   {
+    "id": "breakfast",
+    "label": "Breakfast"
+   },
+   {
+    "id": "capital-cities",
+    "label": "Capital Cities"
+   },
+   {
+    "id": "phones-and-apps",
+    "label": "Phones & Apps"
+   }
+  ],
+  "mid": [
+   {
+    "id": "herbs-spices",
+    "label": "Herbs & Spices"
+   },
+   {
+    "id": "puppetry",
+    "label": "Puppets & Punch and Judy"
+   },
+   {
+    "id": "weddings",
+    "label": "Weddings"
+   }
+  ],
+  "niche": [
+   {
+    "id": "julia-donaldson",
+    "label": "Julia Donaldson"
+   },
+   {
+    "id": "king-arthur",
+    "label": "King Arthur & Camelot"
+   },
+   {
+    "id": "roald-dahl",
+    "label": "Roald Dahl"
+   }
+  ]
+ }
+}
