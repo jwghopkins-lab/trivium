@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-02",
+ "tiers": {
+  "broad": [
+   {
+    "id": "airports",
+    "label": "Airports"
+   },
+   {
+    "id": "london-underground",
+    "label": "London Underground"
+   },
+   {
+    "id": "tools-diy",
+    "label": "Tools & DIY"
+   }
+  ],
+  "mid": [
+   {
+    "id": "aviation",
+    "label": "Aviation & Flight"
+   },
+   {
+    "id": "caravans",
+    "label": "Caravans & Camping Holidays"
+   },
+   {
+    "id": "volcanoes",
+    "label": "Volcanoes"
+   }
+  ],
+  "niche": [
+   {
+    "id": "church-organs",
+    "label": "Church Organs"
+   },
+   {
+    "id": "indiana-jones",
+    "label": "Indiana Jones"
+   },
+   {
+    "id": "the-beatles",
+    "label": "The Beatles"
+   }
+  ]
+ }
+}
