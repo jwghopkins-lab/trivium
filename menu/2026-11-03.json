@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-03",
+ "tiers": {
+  "broad": [
+   {
+    "id": "condiments",
+    "label": "Condiments & Sauces"
+   },
+   {
+    "id": "newspapers",
+    "label": "Newspapers"
+   },
+   {
+    "id": "the-playground",
+    "label": "The Playground"
+   }
+  ],
+  "mid": [
+   {
+    "id": "beer-brewing",
+    "label": "Beer & Brewing"
+   },
+   {
+    "id": "falconry",
+    "label": "Falconry"
+   },
+   {
+    "id": "morris-dancing",
+    "label": "Morris Dancing"
+   }
+  ],
+  "niche": [
+   {
+    "id": "tanks-armour",
+    "label": "Tanks and Armour"
+   },
+   {
+    "id": "the-jungle-book",
+    "label": "The Jungle Book"
+   },
+   {
+    "id": "wallace-and-gromit",
+    "label": "Wallace & Gromit"
+   }
+  ]
+ }
+}
