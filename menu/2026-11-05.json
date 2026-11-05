@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-05",
+ "tiers": {
+  "broad": [
+   {
+    "id": "birthdays",
+    "label": "Birthdays"
+   },
+   {
+    "id": "christmas",
+    "label": "Christmas"
+   },
+   {
+    "id": "hats",
+    "label": "Hats & Headwear"
+   }
+  ],
+  "mid": [
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "butterflies-moths",
+    "label": "Butterflies & Moths"
+   },
+   {
+    "id": "musical-instruments",
+    "label": "Musical Instruments"
+   }
+  ],
+  "niche": [
+   {
+    "id": "choral-music",
+    "label": "20th-Century English Choral Music"
+   },
+   {
+    "id": "paddington",
+    "label": "Paddington Bear"
+   },
+   {
+    "id": "polar-exploration",
+    "label": "Polar Exploration"
+   }
+  ]
+ }
+}
