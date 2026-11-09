@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-09",
+ "tiers": {
+  "broad": [
+   {
+    "id": "farms-farming",
+    "label": "Farms & Farming"
+   },
+   {
+    "id": "in-the-bathroom",
+    "label": "In the Bathroom"
+   },
+   {
+    "id": "things-that-beep",
+    "label": "Things That Beep"
+   }
+  ],
+  "mid": [
+   {
+    "id": "deserts",
+    "label": "Deserts"
+   },
+   {
+    "id": "herbs-spices",
+    "label": "Herbs & Spices"
+   },
+   {
+    "id": "windmills",
+    "label": "Windmills & Watermills"
+   }
+  ],
+  "niche": [
+   {
+    "id": "fairy-tales",
+    "label": "Fairy Tales"
+   },
+   {
+    "id": "ghosts-hauntings",
+    "label": "Ghosts & Hauntings"
+   },
+   {
+    "id": "the-suffragettes",
+    "label": "The Suffragettes"
+   }
+  ]
+ }
+}
