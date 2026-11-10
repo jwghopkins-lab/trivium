@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-10",
+ "tiers": {
+  "broad": [
+   {
+    "id": "halloween",
+    "label": "Halloween"
+   },
+   {
+    "id": "the-cinema",
+    "label": "At the Cinema"
+   },
+   {
+    "id": "the-pub",
+    "label": "The Pub"
+   }
+  ],
+  "mid": [
+   {
+    "id": "camping-outdoors",
+    "label": "Camping & the Outdoors"
+   },
+   {
+    "id": "silly-english-things",
+    "label": "Silly English Things"
+   },
+   {
+    "id": "stained-glass",
+    "label": "Stained Glass"
+   }
+  ],
+  "niche": [
+   {
+    "id": "jane-austen",
+    "label": "Jane Austen"
+   },
+   {
+    "id": "mr-men",
+    "label": "Mr Men & Little Miss"
+   },
+   {
+    "id": "vikings",
+    "label": "Vikings"
+   }
+  ]
+ }
+}
