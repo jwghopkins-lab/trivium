@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-11",
+ "tiers": {
+  "broad": [
+   {
+    "id": "rubbish-recycling",
+    "label": "Rubbish & Recycling"
+   },
+   {
+    "id": "the-office",
+    "label": "The Office"
+   },
+   {
+    "id": "tools-diy",
+    "label": "Tools & DIY"
+   }
+  ],
+  "mid": [
+   {
+    "id": "caravans",
+    "label": "Caravans & Camping Holidays"
+   },
+   {
+    "id": "mushrooms-foraging",
+    "label": "Mushrooms & Foraging"
+   },
+   {
+    "id": "wine-vineyards",
+    "label": "Wine & Vineyards"
+   }
+  ],
+  "niche": [
+   {
+    "id": "agatha-christie",
+    "label": "Agatha Christie"
+   },
+   {
+    "id": "harry-potter",
+    "label": "Harry Potter"
+   },
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   }
+  ]
+ }
+}
