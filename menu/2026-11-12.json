@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-12",
+ "tiers": {
+  "broad": [
+   {
+    "id": "emergency-services",
+    "label": "Emergency Services"
+   },
+   {
+    "id": "laundry-cleaning",
+    "label": "Laundry & Cleaning"
+   },
+   {
+    "id": "the-human-body",
+    "label": "The Human Body"
+   }
+  ],
+  "mid": [
+   {
+    "id": "cycling",
+    "label": "Cycling"
+   },
+   {
+    "id": "photography",
+    "label": "Photography"
+   },
+   {
+    "id": "uk-sitcoms",
+    "label": "UK Sitcoms"
+   }
+  ],
+  "niche": [
+   {
+    "id": "bletchley-park",
+    "label": "Bletchley Park"
+   },
+   {
+    "id": "peter-pan",
+    "label": "Peter Pan"
+   },
+   {
+    "id": "the-titanic",
+    "label": "The Titanic"
+   }
+  ]
+ }
+}
