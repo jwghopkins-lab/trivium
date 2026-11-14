@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-14",
+ "tiers": {
+  "broad": [
+   {
+    "id": "barbecues",
+    "label": "Barbecues"
+   },
+   {
+    "id": "money-banking",
+    "label": "Money & Banking"
+   },
+   {
+    "id": "the-gym",
+    "label": "The Gym & Keeping Fit"
+   }
+  ],
+  "mid": [
+   {
+    "id": "canals-narrowboats",
+    "label": "Canals & Narrowboats"
+   },
+   {
+    "id": "gardening-plants",
+    "label": "Gardening & Plants"
+   },
+   {
+    "id": "gemstones-jewellery",
+    "label": "Gemstones & Jewellery"
+   }
+  ],
+  "niche": [
+   {
+    "id": "asterix",
+    "label": "Asterix"
+   },
+   {
+    "id": "aztecs-incas",
+    "label": "Aztecs & Incas"
+   },
+   {
+    "id": "the-wizard-of-oz",
+    "label": "The Wizard of Oz"
+   }
+  ]
+ }
+}
