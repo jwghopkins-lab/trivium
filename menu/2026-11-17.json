@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-17",
+ "tiers": {
+  "broad": [
+   {
+    "id": "at-the-doctors",
+    "label": "At the Doctors"
+   },
+   {
+    "id": "food-drink",
+    "label": "Food & Drink"
+   },
+   {
+    "id": "house-home",
+    "label": "Around the House"
+   }
+  ],
+  "mid": [
+   {
+    "id": "cocktails-bars",
+    "label": "Cocktails & Bars"
+   },
+   {
+    "id": "pottery-ceramics",
+    "label": "Pottery & Ceramics"
+   },
+   {
+    "id": "the-circus",
+    "label": "The Circus"
+   }
+  ],
+  "niche": [
+   {
+    "id": "ghosts-hauntings",
+    "label": "Ghosts & Hauntings"
+   },
+   {
+    "id": "the-hobbit",
+    "label": "The Hobbit"
+   },
+   {
+    "id": "thunderbirds",
+    "label": "Thunderbirds"
+   }
+  ]
+ }
+}
