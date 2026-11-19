@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-19",
+ "tiers": {
+  "broad": [
+   {
+    "id": "movies-tv",
+    "label": "Movies & TV"
+   },
+   {
+    "id": "music",
+    "label": "Music"
+   },
+   {
+    "id": "sport",
+    "label": "Sport"
+   }
+  ],
+  "mid": [
+   {
+    "id": "comics-superheroes",
+    "label": "Comics & Superheroes"
+   },
+   {
+    "id": "fossil-hunting",
+    "label": "Fossil Hunting"
+   },
+   {
+    "id": "the-olympics",
+    "label": "The Olympics"
+   }
+  ],
+  "niche": [
+   {
+    "id": "agatha-christie",
+    "label": "Agatha Christie"
+   },
+   {
+    "id": "chess",
+    "label": "Chess"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
