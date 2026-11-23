@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-23",
+ "tiers": {
+  "broad": [
+   {
+    "id": "animals-wildlife",
+    "label": "Animals & Wildlife"
+   },
+   {
+    "id": "hats",
+    "label": "Hats & Headwear"
+   },
+   {
+    "id": "shoes-footwear",
+    "label": "Shoes & Footwear"
+   }
+  ],
+  "mid": [
+   {
+    "id": "bridges",
+    "label": "Bridges"
+   },
+   {
+    "id": "photography",
+    "label": "Photography"
+   },
+   {
+    "id": "submarines",
+    "label": "Submarines"
+   }
+  ],
+  "niche": [
+   {
+    "id": "heists-capers",
+    "label": "Heists & Capers"
+   },
+   {
+    "id": "pirates",
+    "label": "Pirates & the High Seas"
+   },
+   {
+    "id": "the-tower-of-london",
+    "label": "The Tower of London"
+   }
+  ]
+ }
+}
