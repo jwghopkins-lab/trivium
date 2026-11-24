@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-24",
+ "tiers": {
+  "broad": [
+   {
+    "id": "hairdressers",
+    "label": "Hairdressers"
+   },
+   {
+    "id": "phones-and-apps",
+    "label": "Phones & Apps"
+   },
+   {
+    "id": "the-human-body",
+    "label": "The Human Body"
+   }
+  ],
+  "mid": [
+   {
+    "id": "board-games",
+    "label": "Board Game Night"
+   },
+   {
+    "id": "hot-air-balloons",
+    "label": "Hot Air Balloons"
+   },
+   {
+    "id": "whisky-distilling",
+    "label": "Whisky & Distilling"
+   }
+  ],
+  "niche": [
+   {
+    "id": "dracula-gothic",
+    "label": "Dracula & Gothic Horror"
+   },
+   {
+    "id": "lighthouses",
+    "label": "Lighthouses"
+   },
+   {
+    "id": "the-moon-landings",
+    "label": "The Moon Landings"
+   }
+  ]
+ }
+}
