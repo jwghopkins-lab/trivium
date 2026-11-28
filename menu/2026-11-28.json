@@ -1,0 +1,47 @@
+{
+ "date": "2026-11-28",
+ "tiers": {
+  "broad": [
+   {
+    "id": "picnics",
+    "label": "Picnics"
+   },
+   {
+    "id": "school-days",
+    "label": "School Days"
+   },
+   {
+    "id": "sunday-roast",
+    "label": "The Sunday Roast"
+   }
+  ],
+  "mid": [
+   {
+    "id": "horses-riding",
+    "label": "Horses & Riding"
+   },
+   {
+    "id": "perfume-scent",
+    "label": "Perfume & Scent"
+   },
+   {
+    "id": "sailing-boats",
+    "label": "Sailing & Boats"
+   }
+  ],
+  "niche": [
+   {
+    "id": "codes-ciphers",
+    "label": "Codes & Ciphers"
+   },
+   {
+    "id": "the-blitz",
+    "label": "The Blitz"
+   },
+   {
+    "id": "winnie-the-pooh",
+    "label": "Winnie-the-Pooh"
+   }
+  ]
+ }
+}
